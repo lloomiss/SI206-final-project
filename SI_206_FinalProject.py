@@ -35,3 +35,4 @@ try:
     print(anime_details)
 except Exception as e:
     print(e)
+    #evie testing
