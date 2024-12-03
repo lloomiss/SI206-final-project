@@ -19,7 +19,7 @@ def tomato_extract(tag):
     
     return (title, tomatometer, popcornmeter)
 
-def get_RT_Info(soup) -> list:
+def get_RT_info(soup) -> list:
     # initialize list of tuples to return
     RT_data_list = []
 
@@ -41,36 +41,24 @@ def get_RT_Info(soup) -> list:
     return RT_data_list
 
 
-'''def get_MAL_ID(url): ## Picturing a string of a url or multiple as input
-    patternID = r'myanimelist.net/anime/(d+)/w*'
-    patternTitle = r'myanimelist.net/anime/d+/(w*)'
-    MAL_ID =  re.findall(patternID, url)
-    MAL_Titles = re.findall(patternTitle, url)
-    
-
-    
-
-    ## Want to get specific id from animelist
-    return '''
-
-
-'''def get_anime_details(id):
-    url = f'https://api.jikan.moe/v4/anime/{id}'
-    
-    response = requests.get(url)
-    
-    if response.status_code == 200:
-        data = response.json()
-        return data
-    else:
-        raise Exception(f"Failed to retrieve data: {response.status_code}")
-
-try:
-    anime_details = get_anime_details(20)
-    print(anime_details)
-except Exception as e:
-    print(e)
-    #evie testing'''
+def get_MAL_info(RT_data_list): 
+    for anime in RT_data_list:
+        title = anime[0]
+        print(title)
+        if re.find(title, r' '):
+             modified_string = title.replace(" ", "-")
+        else: 
+            modified_string = title
+        
+        url = f'https://api.jikan.moe/v4/anime?q={modified_string}'
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            raise Exception(f"Failed to retrieve data: {response.status_code}")
+           
 
 def main():
     # get soup
@@ -84,7 +72,14 @@ def main():
         print('Invalid URL')
         return
 
-    d = get_RT_Info(tomato_soup)
+    #d = get_RT_info(tomato_soup)
+
+    try:
+        anime_details = get_MAL_info([('Blue Exorcist', '', '') ])
+        print(anime_details)
+    except Exception as e:
+            print(e)
+
 
 if __name__ == "__main__":
     main()
