@@ -1,86 +1,74 @@
 import json
 import re
 import requests
-import BeautifulSoup
-headers = {'X-MAL-Client-ID': '6114d00ca681b7701d1e15fe11a4987e'}
-resp = requests.get('https://api.myanimelist.net/v2/anime/search?status=not_yet_aired&limit=1&offset=0&fields=alternative_titles', headers=headers)
-print(resp.json())
+from bs4 import BeautifulSoup
+#headers = {'X-MAL-Client-ID': '6114d00ca681b7701d1e15fe11a4987e'}
+#resp = requests.get('https://api.myanimelist.net/v2/anime/search?status=not_yet_aired&limit=1&offset=0&fields=alternative_titles', headers=headers)
+#print(resp.json())
 
-def get_RT_Info(url):
-    content = 
-    def get_listing_details(listing_id): 
+def get_RT_Info(soup) -> list:
+    # initialize list of tuples to return
+    RT_data_list = []
+
+    '''title_tags = soup.find_all('span', {'data-qa': 'discovery-media-list-item-title'})
+    if title_tags:    
+        for title_tag in title_tags:
+            title = title_tag.get_text(strip = True)
+            RT_data_list.append(title)
+    else:
+        print("No titles found")'''
+
+    a_data_tags = soup.find_all('a', {'data-track': 'scores'}, {'data-qa': 'discovery-media-list-item-caption'})
     
-  
+    if a_data_tags:
+        for a_data_tag in a_data_tags:
+            title_tag = a_data_tag.find('span', {'data-qa': 'discovery-media-list-item-title'})
+            tomatometer_tag = a_data_tag.find('rt-text', {'slot': 'criticsScore'})
+            popcornmeter_tag = a_data_tag.find('rt-text', {'slot': 'audienceScore'})
+            if title_tag:
+                title = title_tag.get_text(strip = True)
+            else:
+                title = "NULL"
+            if tomatometer_tag:
+                tomatometer = tomatometer_tag.get_text(strip = True)
+            else:
+                tomatometer = "NULL"
+            if popcornmeter_tag:
+                popcornmeter = popcornmeter_tag.get_text(strip = True)
+            else:
+                popcornmeter = "NULL"
+            RT_data_list.append((title, tomatometer, popcornmeter))
+    else:
+        print("No data found")
+
+    div_data_tags = soup.find_all('div', {'data-track': 'scores'}, {'data-qa': 'discovery-media-list-item-caption'})
+
+    if div_data_tags:
+        for div_data_tag in div_data_tags:
+            title_tag = div_data_tag.find('span', {'data-qa': 'discovery-media-list-item-title'})
+            tomatometer_tag = div_data_tag.find('rt-text', {'slot': 'criticsScore'})
+            popcornmeter_tag = div_data_tag.find('rt-text', {'slot': 'audienceScore'})
+            if title_tag:
+                title = title_tag.get_text(strip = True)
+            else:
+                title = "NULL"
+            if tomatometer_tag:
+                tomatometer = tomatometer_tag.get_text(strip = True)
+            else:
+                tomatometer = "NULL"
+            if popcornmeter_tag:
+                popcornmeter = popcornmeter_tag.get_text(strip = True)
+            else:
+                popcornmeter = "NULL"
+            RT_data_list.append((title, tomatometer, popcornmeter))
+    else:
+        print("No data found")
+    
+    print(RT_data_list)
+    return RT_data_list
 
 
-    base_path = os.path.abspath(os.path.dirname(__file__))
-    full_path = os.path.join(base_path, f"html_files/listing_{listing_id}.html")
-
-    with open(full_path, 'r', encoding = "utf-8-sig") as file:
-        content = file.read()
-       #make beautiful soup object
-        soup = BeautifulSoup(content, 'html.parser')
-
-        listing_details= ()
-        policy_info = soup.find("li", class_='f19phm7j')
-        if policy_info:
-            info = policy_info.get_text().strip().replace('\ufeff', '')
-            if 'policy number: ' in info.lower():
-                policy_match = re.search(r"Policy number:\s(.+)", info)
-                if policy_match:
-                    policy_number = policy_match.group(1)
-            elif "pending" in info.lower():
-                policy_number = "Pending"
-            elif "exempt" in info.lower():
-                policy_number = "Exempt"
-        
-        #get the host names & place types
-        host_level_tag = soup.find('span', class_ = "_1mhorg9")
-        if host_level_tag and host_level_tag.get_text() == 'Superhost':
-            host_level = 'Superhost'
-        else:
-            host_level = 'Regular'
-
-
-        host_names = "missing"
-        place_type = "Entire Room"
-        info_tag = soup.find('h2', class_ = '_14i3z6h')
-
-        if info_tag:
-            info = info_tag.get_text().strip().replace('\ufeff', '')
-            #get host names
-            if 'hosted by' in info:
-                host_names = info.split('hosted by')[-1].strip()
-            
-            #get place type
-            if "private" in info.lower():
-                place_type = "Private Room"
-
-            elif "shared" in info.lower():
-                place_type = "Shared Room"
-            
-            #get number of reviews
-        num_reviews = 0
-        reviews_tag = soup.find('span', class_='_s65ijh7')
-        if reviews_tag:
-            review_info = reviews_tag.get_text().replace('\ufeff', '')
-            num_reviews = int(''.join(filter(str.isdigit, review_info)))
-
-        
-        #get listing's nightly rate  
-        nightly_rate = 0
-        rate_info_tag = soup.find('div', class_ ='_1jo4hgw')
-        if rate_info_tag:
-            rate_text = rate_info_tag.get_text()
-            rate_match = re.search(r'\$(\d+)', rate_text)
-            if rate_match:
-                nightly_rate = int(rate_match.group(1) )
-        listing_details = (policy_number, host_level, host_names, place_type, num_reviews, nightly_rate)
-
-    return listing_details
-
-
-def get_MAL_ID(url): ## Picturing a string of a url or multiple as input
+'''def get_MAL_ID(url): ## Picturing a string of a url or multiple as input
     patternID = r'myanimelist.net/anime/(d+)/w*'
     patternTitle = r'myanimelist.net/anime/d+/(w*)'
     MAL_ID =  re.findall(patternID, url)
@@ -90,10 +78,10 @@ def get_MAL_ID(url): ## Picturing a string of a url or multiple as input
     
 
     ## Want to get specific id from animelist
-    return 
+    return '''
 
 
-def get_anime_details(id):
+'''def get_anime_details(id):
     url = f'https://api.jikan.moe/v4/anime/{id}'
     
     response = requests.get(url)
@@ -109,4 +97,21 @@ try:
     print(anime_details)
 except Exception as e:
     print(e)
-    #evie testing
+    #evie testing'''
+
+def main():
+    # get soup
+    url = 'https://www.rottentomatoes.com/browse/tv_series_browse/genres:anime~sort:popular?page=5'
+    r = requests.get(url)
+    
+    if r.status_code == 200:
+        html = r.text
+        tomato_soup = BeautifulSoup(html, 'html.parser')
+    else:
+        print('Invalid URL')
+        return
+
+    d = get_RT_Info(tomato_soup)
+
+if __name__ == "__main__":
+    main()
