@@ -6,61 +6,34 @@ from bs4 import BeautifulSoup
 #resp = requests.get('https://api.myanimelist.net/v2/anime/search?status=not_yet_aired&limit=1&offset=0&fields=alternative_titles', headers=headers)
 #print(resp.json())
 
+def tomato_extract(tag):
+    # get the tags for anime titles, tomatometers, and popcornmeters
+    title_tag = tag.find('span', {'data-qa': 'discovery-media-list-item-title'})
+    tomatometer_tag = tag.find('rt-text', {'slot': 'criticsScore'})
+    popcornmeter_tag = tag.find('rt-text', {'slot': 'audienceScore'})
+
+    # get the text or return a NULL value if no text
+    title = title_tag.get_text(strip=True) if title_tag else "NULL"
+    tomatometer = tomatometer_tag.get_text(strip=True) if tomatometer_tag else "NULL"
+    popcornmeter = popcornmeter_tag.get_text(strip=True) if popcornmeter_tag else "NULL"
+    
+    return (title, tomatometer, popcornmeter)
+
 def get_RT_Info(soup) -> list:
     # initialize list of tuples to return
     RT_data_list = []
 
-    '''title_tags = soup.find_all('span', {'data-qa': 'discovery-media-list-item-title'})
-    if title_tags:    
-        for title_tag in title_tags:
-            title = title_tag.get_text(strip = True)
-            RT_data_list.append(title)
-    else:
-        print("No titles found")'''
-
+    # get the a and div tags
     a_data_tags = soup.find_all('a', {'data-track': 'scores'}, {'data-qa': 'discovery-media-list-item-caption'})
-    
-    if a_data_tags:
-        for a_data_tag in a_data_tags:
-            title_tag = a_data_tag.find('span', {'data-qa': 'discovery-media-list-item-title'})
-            tomatometer_tag = a_data_tag.find('rt-text', {'slot': 'criticsScore'})
-            popcornmeter_tag = a_data_tag.find('rt-text', {'slot': 'audienceScore'})
-            if title_tag:
-                title = title_tag.get_text(strip = True)
-            else:
-                title = "NULL"
-            if tomatometer_tag:
-                tomatometer = tomatometer_tag.get_text(strip = True)
-            else:
-                tomatometer = "NULL"
-            if popcornmeter_tag:
-                popcornmeter = popcornmeter_tag.get_text(strip = True)
-            else:
-                popcornmeter = "NULL"
-            RT_data_list.append((title, tomatometer, popcornmeter))
-    else:
-        print("No data found")
-
     div_data_tags = soup.find_all('div', {'data-track': 'scores'}, {'data-qa': 'discovery-media-list-item-caption'})
 
-    if div_data_tags:
-        for div_data_tag in div_data_tags:
-            title_tag = div_data_tag.find('span', {'data-qa': 'discovery-media-list-item-title'})
-            tomatometer_tag = div_data_tag.find('rt-text', {'slot': 'criticsScore'})
-            popcornmeter_tag = div_data_tag.find('rt-text', {'slot': 'audienceScore'})
-            if title_tag:
-                title = title_tag.get_text(strip = True)
-            else:
-                title = "NULL"
-            if tomatometer_tag:
-                tomatometer = tomatometer_tag.get_text(strip = True)
-            else:
-                tomatometer = "NULL"
-            if popcornmeter_tag:
-                popcornmeter = popcornmeter_tag.get_text(strip = True)
-            else:
-                popcornmeter = "NULL"
-            RT_data_list.append((title, tomatometer, popcornmeter))
+    # combine the a and div tags into one list
+    data_tags = a_data_tags + div_data_tags
+
+    # iterate through all the tags, extract the data, and append each tuple to RT_data_list
+    if data_tags:
+        for tag in data_tags:
+            RT_data_list.append(tomato_extract(tag))
     else:
         print("No data found")
     
