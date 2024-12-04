@@ -45,7 +45,7 @@ def get_MAL_info(RT_data_list):
     for anime in RT_data_list:
         title = anime[0]
         print(title)
-        if re.find(title, r' '):
+        if re.search(title, r' '):
              modified_string = title.replace(" ", "-")
         else: 
             modified_string = title
