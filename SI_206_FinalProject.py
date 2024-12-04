@@ -40,8 +40,32 @@ def get_RT_info(soup) -> list:
     print(RT_data_list)
     return RT_data_list
 
+#something to note -- specific anime pages must have id nubmer to access information, titles get search results! 
+def get_MAL_info(RT_data_list) -> list:
+    info_list = []
+    for anime in RT_data_list:
+        title = anime[0]
+        if re.search(title, r' '):
+            modified_string = title.replace(" ", "-")
+        else: 
+            modified_string = title
+        # url here gets "full information from the API" getAnimeFullByld (https://docs.api.jikan.moe/#tag/anime/operation/getAnimeFullById"
+        url = f'https://api.jikan.moe/v4/anime/{modified_string}/full'
+        #url = f'https://api.jikan.moe/v4/anime?q={modified_string}'
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            score = data['data'].get('score', 'null')
 
-def get_MAL_info(RT_data_list): 
+
+            return score
+            
+        else:
+            raise Exception(f"Failed to retrieve data: {response.status_code}")
+           
+# original code, not sure if we want to continue with the method of grabbing titles and then inputing -- if we do, we can
+# then go into the specific entries, grab their mal_id, and then 
+'''def get_MAL_info(RT_data_list): 
     for anime in RT_data_list:
         title = anime[0]
         print(title)
@@ -57,8 +81,7 @@ def get_MAL_info(RT_data_list):
             data = response.json()
             return data
         else:
-            raise Exception(f"Failed to retrieve data: {response.status_code}")
-           
+            raise Exception(f"Failed to retrieve data: {response.status_code}")'''
 
 def main():
     # get soup
@@ -75,7 +98,7 @@ def main():
     #d = get_RT_info(tomato_soup)
 
     try:
-        anime_details = get_MAL_info([('Blue Exorcist', '', '') ])
+        anime_details = get_MAL_info([('9919', '', '') ])
         print(anime_details)
     except Exception as e:
             print(e)
