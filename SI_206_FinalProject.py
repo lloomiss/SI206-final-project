@@ -41,27 +41,131 @@ def get_RT_info(soup) -> list:
     return RT_data_list
 
 #something to note -- specific anime pages must have id nubmer to access information, titles get search results! 
+'''def get_MAL_info2(RT_data_list) -> list:
+    info_list = []
+    for anime in RT_data_list:
+        title = anime[0]
+        # url here gets "full information from the API" getAnimeFullByld (https://docs.api.jikan.moe/#tag/anime/operation/getAnimeFullById"
+        #url = f'https://api.jikan.moe/v4/anime/{modified_string}/full'
+        url = f'https://api.jikan.moe/v4/anime?q={title}'
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            
+
+            EnglishTitle = data['data']['titles'][3].get('title', 'null') 
+            JpnTitle =  data['data']['titles'][2].get('title', 'null') 
+            #checking if title grabbed from Rotten Tomatoes is the same as MAL search results
+            if EnglishTitle == title or JpnTitle  == modified_string:
+                MAL_ID = data['data']['titles'][3].get('title', 'null') 
+                full_url = 'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
+                
+                response2 = requests.get(full_url)
+                if response2.status_code == 200:
+                    data2 =  response2.json()
+                    fullInfo = []
+                    seasonScore = data2['data'].get('score', 'null') 
+                    numSeasons = -1 #0 if movie
+                    genres = []
+                    studio = ''
+                    numEpisodes = data2['data'].get('episodes', 'null')
+                    releaseDate = data2['data']['aired'].get('string', 'null') # string formatted as 'Mon XX, XXXX to Mon XX, XXXX'
+                    numReviews = data2['data'].get('scored_by', 'null')
+                    studio = data2['data']['studios'].get('name', 'null')
+                    for item in genres:
+                       genre = data2['data']['genres'][item].get('name', 'null')
+                       genres.append(genre)
+                    
+                    fullInfo.append((modified_string, seasonScore, genres, studio, numEpisodes, releaseDate, numReviews))
+                    
+                    
+'''
+
 def get_MAL_info(RT_data_list) -> list:
     info_list = []
     for anime in RT_data_list:
         title = anime[0]
-        if re.search(title, r' '):
-            modified_string = title.replace(" ", "-")
-        else: 
-            modified_string = title
-        # url here gets "full information from the API" getAnimeFullByld (https://docs.api.jikan.moe/#tag/anime/operation/getAnimeFullById"
-        url = f'https://api.jikan.moe/v4/anime/{modified_string}/full'
-        #url = f'https://api.jikan.moe/v4/anime?q={modified_string}'
+        
+
+        # url here gets "full information from the API" getAnimeFullByld (https://docs.api.jikan.moe/#tag/anime/operation/getAnimeFullById)
+        #url = f'https://api.jikan.moe/v4/anime/{modified_string}/full'
+        url = f'https://api.jikan.moe/v4/anime?q={title}'
         response = requests.get(url)
         if response.status_code == 200:
             data = response.json()
-            score = data['data'].get('score', 'null')
+            
+            '''titles = data['data']['titles'] if 'titles' in data['data'] else []
+            
+            EnglishTitle = None
+            JpnTitle = None
+            for i in range(len(titles)):
+                if titles[i]['type'] == 'English':
+                    EnglishTitle = titles[i]['title']
+                elif titles[i]['type'] == 'Japanese':
+                    JpnTitle = titles[i]['title']
+            '''
 
-
-            return score
+            # Checking if title grabbed from Rotten Tomatoes is the same as MAL search results
+            #if EnglishTitle == modified_string or JpnTitle == modified_string:
+            MAL_ID = data['data']['mal_id']
+            full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
+            
+            response2 = requests.get(full_url)
+            if response2.status_code == 200:
+                data2 =  response2.json()
+                fullInfo = []
+                seasonScore = data2['data'].get('score', 'null') 
+                numSeasons = -1 # 0 if movie
+                genres_list = data2['data'].get('genres', [])
+                genres = [genre.get('name', 'null') for genre in genres_list]
+                studio_list = data2['data'].get('studios', [])
+                studio = studio_list[0].get('name', 'null') if studio_list else 'null'
+                numEpisodes = data2['data'].get('episodes', 'null')
+                releaseDate = data2['data']['aired'].get('string', 'null') # string formatted as 'Mon XX, XXXX to Mon XX, XXXX'
+                numReviews = data2['data'].get('scored_by', 'null')
+                
+                fullInfo.append((title, seasonScore, genres, studio, numEpisodes, releaseDate, numReviews))
+                
+                info_list.append(fullInfo)
+                    
+            else:
+                raise Exception(f"Failed to match titles: {title}")
             
         else:
             raise Exception(f"Failed to retrieve data: {response.status_code}")
+    
+    return info_list
+
+
+
+## CHAT HELPED WITH THIS 
+
+'''def get_english_title(api_url):
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        data = response.json()
+        if 'data' in data and len(data['data']) > 0:
+            # Get the first entry in the data
+            first_entry = data['data'][0]
+            titles = first_entry.get('titles', [])
+            english_title = None
+            for title in titles:
+                if title['type'] == 'English':
+                    english_title = title['title']
+                    break
+            return english_title
+        else:
+            raise Exception("No data found in the API response.")
+    else:
+        raise Exception(f"Failed to retrieve data: {response.status_code}")
+
+api_url = "https://api.jikan.moe/v4/anime?q=blue%20exorcist"
+english_title = get_english_title(api_url)
+if english_title:
+    print(f"English Title: {english_title}")
+else:
+    print("English title not found.")
+'''
            
 # original code, not sure if we want to continue with the method of grabbing titles and then inputing -- if we do, we can
 # then go into the specific entries, grab their mal_id, and then 
@@ -81,8 +185,10 @@ def get_MAL_info(RT_data_list) -> list:
             data = response.json()
             return data
         else:
-            raise Exception(f"Failed to retrieve data: {response.status_code}")'''
-
+            raise Exception(f"Failed to retrieve data: {response.status_code}")
+'''
+            
+            
 def main():
     # get soup
     url = 'https://www.rottentomatoes.com/browse/tv_series_browse/genres:anime~sort:popular?page=5'
@@ -98,7 +204,7 @@ def main():
     #d = get_RT_info(tomato_soup)
 
     try:
-        anime_details = get_MAL_info([('9919', '', '') ])
+        anime_details = get_MAL_info([('Blue Exorcist', '', '') ])
         print(anime_details)
     except Exception as e:
             print(e)
