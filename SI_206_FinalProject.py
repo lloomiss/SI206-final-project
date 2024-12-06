@@ -42,13 +42,13 @@ def get_RT_info(soup) -> list:
     else:
         print("No data found")
     
-    print(RT_data_list)
+    #print(RT_data_list)
     return RT_data_list
 
 
-def get_MAL_info(RT_data_list) -> list:
+def get_MAL_info(RT_data_list, start, stop) -> list:
     info_list = []
-    for anime in RT_data_list:
+    for anime in RT_data_list[start:stop]:
         title = anime[0]
 
         # url here gets "full information from the API" getAnimeFullByld (https://docs.api.jikan.moe/#tag/anime/operation/getAnimeFullById)
@@ -66,7 +66,7 @@ def get_MAL_info(RT_data_list) -> list:
                     full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
                     
                     #delay in requests
-                    time.sleep(5)
+                    time.sleep(2)
                     
                     response2 = requests.get(full_url)
                     if response2.status_code == 200:
@@ -95,6 +95,7 @@ def get_MAL_info(RT_data_list) -> list:
         else:
             raise Exception(f"Failed to retrieve data: {response.status_code}")
     
+    print(info_list)
     return info_list
 
 def set_up_database(db_name):
@@ -118,7 +119,7 @@ def set_up_database(db_name):
 
 
 
-def create_MAL_table(data, cur, conn):
+'''def create_MAL_table(data, cur, conn):
     """
     Parameters
     -----------------------
@@ -139,17 +140,17 @@ def create_MAL_table(data, cur, conn):
 
     cur.execute(
         '''
-        CREATE TABLE IF NOT EXISTS Pokemon (
-        anime_id INTEGER PRIMARY KEY,
-        name TEXT,
-        score INTEGER,
-        genre STRING,
-        studio STRING,
-        numEpi INTEGER,
-        releaseDate STRING,
-        numReviews INTEGER,
-        )
-        '''
+        #CREATE TABLE IF NOT EXISTS Pokemon (
+        #anime_id INTEGER PRIMARY KEY,
+        #name TEXT,
+        #score INTEGER,
+        #genre STRING,
+        #studio STRING,
+        #numEpi INTEGER,
+        #releaseDate STRING,
+        #numReviews INTEGER,
+        #)
+'''
     )
     for anime in data:
         name = anime['name']
@@ -172,14 +173,14 @@ def create_MAL_table(data, cur, conn):
         #print(type1_id, type2_id)
         cur.execute(
             '''
-            INSERT OR IGNORE INTO Pokemon (
-            pokemon_id, name, type1_id, type2_id, health_points, speed, attack, spl_attack, defense, spl_defense
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (pokemon['id'], name, type1_id, type2_id, health_points, speed, attack, special_attack, defense, special_defense)
+            #INSERT OR IGNORE INTO Pokemon (
+            #pokemon_id, name, type1_id, type2_id, health_points, speed, attack, spl_attack, defense, spl_defense
+            #)
+            #VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+''', (pokemon['id'], name, type1_id, type2_id, health_points, speed, attack, special_attack, defense, special_defense)
         )
     
-    conn.commit()
+    conn.commit()'''
 
             
             
@@ -198,7 +199,7 @@ def main():
     RT_info = get_RT_info(tomato_soup)
 
     try:
-        anime_details = get_MAL_info(RT_info)
+        anime_details = get_MAL_info(RT_info, 0, 10)
         print(anime_details)
     except Exception as e:
             print(e)
