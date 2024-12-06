@@ -2,6 +2,11 @@ import json
 import re
 import requests
 from bs4 import BeautifulSoup
+import unittest
+import sqlite3
+import json
+import os
+import time
 #headers = {'X-MAL-Client-ID': '6114d00ca681b7701d1e15fe11a4987e'}
 #resp = requests.get('https://api.myanimelist.net/v2/anime/search?status=not_yet_aired&limit=1&offset=0&fields=alternative_titles', headers=headers)
 #print(resp.json())
@@ -60,6 +65,9 @@ def get_MAL_info(RT_data_list) -> list:
                 if MAL_ID:
                     full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
                     
+                    #delay in requests
+                    time.sleep(5)
+                    
                     response2 = requests.get(full_url)
                     if response2.status_code == 200:
                         data2 =  response2.json()
@@ -89,7 +97,90 @@ def get_MAL_info(RT_data_list) -> list:
     
     return info_list
 
-           
+def set_up_database(db_name):
+    """
+    Sets up a SQLite database connection and cursor.
+
+    Parameters
+    -----------------------
+    db_name: str
+        The name of the SQLite database.
+
+    Returns
+    -----------------------
+    Tuple (Cursor, Connection):
+        A tuple containing the database cursor and connection objects.
+    """
+    path = os.path.dirname(os.path.abspath(__file__))
+    conn = sqlite3.connect(path + "/" + db_name)
+    cur = conn.cursor()
+    return cur, conn     
+
+
+
+def create_MAL_table(data, cur, conn):
+    """
+    Parameters
+    -----------------------
+    data: str
+        Stores pokemon.json, written in JSON format
+    
+    cur: 
+        database cursor
+    
+    conn: 
+        database connection
+
+    Returns
+    -----------------------
+    Nothing
+    """
+    # YOUR CODE IMPLEMENTATION HERE
+
+    cur.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS Pokemon (
+        anime_id INTEGER PRIMARY KEY,
+        name TEXT,
+        score INTEGER,
+        genre STRING,
+        studio STRING,
+        numEpi INTEGER,
+        releaseDate STRING,
+        numReviews INTEGER,
+        )
+        '''
+    )
+    for anime in data:
+        name = anime['name']
+        type1 = anime['type'][0]
+        cur.execute("SELECT id FROM Types WHERE type = ?", (type1, ))
+        type1_id = cur.fetchone()[0]
+
+        type2_id = None
+        if len(pokemon['type']) > 1:
+            type2 = pokemon['type'][1]
+            cur.execute("SELECT id FROM Types WHERE type = ?", (type2, ))
+            type2_id = cur.fetchone()[0]
+       #print(pokemon)
+        health_points = pokemon['stats']['hp']
+        speed = pokemon['stats']['speed']
+        attack = pokemon['stats']['attack']
+        special_attack = pokemon['stats']['special-attack']
+        defense = pokemon['stats']['defense']
+        special_defense = pokemon['stats']['special-defense']
+        #print(type1_id, type2_id)
+        cur.execute(
+            '''
+            INSERT OR IGNORE INTO Pokemon (
+            pokemon_id, name, type1_id, type2_id, health_points, speed, attack, spl_attack, defense, spl_defense
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (pokemon['id'], name, type1_id, type2_id, health_points, speed, attack, special_attack, defense, special_defense)
+        )
+    
+    conn.commit()
+
             
             
 def main():
@@ -104,10 +195,10 @@ def main():
         print('Invalid URL')
         return
 
-    #d = get_RT_info(tomato_soup)
+    RT_info = get_RT_info(tomato_soup)
 
     try:
-        anime_details = get_MAL_info([('Blue Exorcist', '', '') ])
+        anime_details = get_MAL_info(RT_info)
         print(anime_details)
     except Exception as e:
             print(e)
