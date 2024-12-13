@@ -167,7 +167,7 @@ def insert_data(data, cur, conn):
         for anime in chunk:
             title = anime[0]
             score = anime[1]
-            genre = anime[2]
+            genres = ', '.join(anime[2]) if isinstance(anime[2], list) else anime[2]
             studio = anime[3]
             numEpisodes = anime[4]
             releaseDate = anime[5]
