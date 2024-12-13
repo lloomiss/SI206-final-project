@@ -18,8 +18,24 @@ def tomato_extract(tag):
     # get the text or return a NULL value if no text
     title = title_tag.get_text(strip=True) if title_tag else "NULL"
     lower_title = title.lower()
-    tomatometer = tomatometer_tag.get_text(strip=True) if tomatometer_tag else "NULL"
-    popcornmeter = popcornmeter_tag.get_text(strip=True) if popcornmeter_tag else "NULL"
+    
+    if tomatometer_tag:
+        tomatometer_text = tomatometer_tag.get_text(strip=True)
+        if tomatometer_text.endswith('%'):
+            tomatometer = float(tomatometer_text[:-1]) / 10
+        else:
+            tomatometer = "NULL"
+    else:
+        tomatometer = "NULL"
+        
+    if popcornmeter_tag:
+        popcornmeter_text = popcornmeter_tag.get_text(strip=True)
+        if popcornmeter_text.endswith('%'):
+            popcornmeter = float(popcornmeter_text[:-1]) / 10
+        else:
+            popcornmeter = "NULL"
+    else:
+        popcornmeter = "NULL"
     
     return (lower_title, tomatometer, popcornmeter)
 
@@ -42,8 +58,6 @@ def get_RT_info(soup) -> list:
         print("No data found")
     
     return RT_data_list
-
-
 
 def get_MAL_info(RT_data_list, start, stop) -> list:
     info_list = []
@@ -125,7 +139,7 @@ def set_up_database(db_name):
     cur = conn.cursor()
     return cur, conn
 
-def create_default_table(data, cur, conn):
+def create_MAL_table(cur, conn):
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS Anime (
@@ -140,25 +154,34 @@ def create_default_table(data, cur, conn):
         )
         '''
     )
+
+    conn.commit()
     
-    for entry in data:
-        for anime in entry:  # Ensure that we unpack correctly from the list
+def chunk_data(data, chunk_size):
+    for i in range(0, len(data), chunk_size):
+        yield data[i:i + chunk_size]
+
+def insert_data(data, cur, conn):
+    chunk_size = 25
+    for chunk in chunk_data(data, chunk_size):
+        for anime in chunk:
             title = anime[0]
             score = anime[1]
-            genres = ', '.join(anime[2]) if isinstance(anime[2], list) else anime[2]  # Ensure genre is a string
+            genre = anime[2]
             studio = anime[3]
             numEpisodes = anime[4]
             releaseDate = anime[5]
             numReviews = anime[6]
-            
+
             cur.execute(
                 '''
                 INSERT OR IGNORE INTO Anime (
                     title, score, genre, studio, numEpi, releaseDate, numReviews
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                ''', (title, score, genres, studio, numEpisodes, releaseDate, numReviews)
+                ''', (title, score, genre, studio, numEpisodes, releaseDate, numReviews)
             )
+
 
     conn.commit()
             
@@ -177,9 +200,10 @@ def main():
     RT_info = get_RT_info(tomato_soup)
 
     try:
-        anime_details = get_MAL_info(RT_info, 0, 10)
-        cur, conn = set_up_database("anime")
-        create_default_table(anime_details, cur, conn)
+        anime_details = get_MAL_info(RT_info, 0, 50)
+        cur, conn = set_up_database("anime.db")
+        create_MAL_table(cur, conn)
+        insert_data(anime_details, cur, conn)
         print(anime_details)
     except Exception as e:
         print(e)
