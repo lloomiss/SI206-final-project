@@ -40,6 +40,7 @@ def tomato_extract(tag):
     
     return (lower_title, tomatometer, popcornmeter)
 
+
 def get_RT_info(soup, start, stop) -> list:
     # initialize list of tuples to return
     RT_data_list = []
@@ -60,6 +61,7 @@ def get_RT_info(soup, start, stop) -> list:
 
     print(f"Extracted {len(RT_data_list)} items from Rotten Tomatoes")
     return RT_data_list
+
 
 def get_MAL_info(RT_data_list) -> list:
     info_list = []
@@ -128,11 +130,13 @@ def get_MAL_info(RT_data_list) -> list:
     print(info_list)
     return info_list
 
+
 def set_up_database(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
     conn = sqlite3.connect(path + "/" + db_name)
     cur = conn.cursor()
     return cur, conn
+
 
 def set_up_RT_table(data, cur, conn):
     meters_list = []
@@ -152,6 +156,9 @@ def set_up_RT_table(data, cur, conn):
         )
         '''
     )
+    conn.commit()  # Ensure table creation is committed
+    print("Created table RT_meters")
+
     for i in range(len(data)):
         cur.execute(
             '''
@@ -159,8 +166,9 @@ def set_up_RT_table(data, cur, conn):
             ''',
             (meters_list[i][0], meters_list[i][1], meters_list[i][2])
         )
-    
     conn.commit()
+    print("Inserted data into RT_meters")
+
 
 def create_MAL_table(cur, conn):
     cur.execute(
@@ -177,8 +185,9 @@ def create_MAL_table(cur, conn):
         )
         '''
     )
-
     conn.commit()
+    print("Created table MAL")
+
 
 def chunk_data(data, chunk_size):
     for i in range(0, len(data), chunk_size):
@@ -211,9 +220,8 @@ def insert_data(data, cur, conn):
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (title, score, genres, studio, numEpisodes, releaseDate, numReviews)
             )
-
-    conn.commit()
-    print("Data committed to the database")
+            conn.commit()
+            print("Data committed to the database")
 
 
 
@@ -237,6 +245,8 @@ def create_combined_table(dbfile):
     );
     '''
     cur.execute(create_table_query)
+    conn.commit()  # Ensure table creation is committed
+    print("Created table combined_anime_data")
 
     # Insert data into the combined table
     insert_data_query = '''
@@ -263,28 +273,9 @@ def create_combined_table(dbfile):
     
     # Commit changes and close connection
     conn.commit()
+    print("Inserted data into combined_anime_data")
     cur.close()
     conn.close()
-
-
-#calculation functions start here
-
-
-
-def finished_calc(cur):
-     
-    query = '''
-    SELECT *
-    FROM RT_meters AS rt
-    JOIN MAL AS mal ON rt.title = mal.title
-    WHERE rt.tomatometer IS NOT NULL AND mal.score IS NOT NULL;
-    '''
-
-    cur.execute(query)
-    
-    results = cur.fetchall()
-
-    return results
 
 
 def main():
@@ -332,14 +323,9 @@ def main():
         insert_data(anime_details_6, cur, conn)
 
         create_combined_table('anime.db')
-
-
-
     except Exception as e:
         print(e)
 
+
 if __name__ == "__main__":
     main()
-
-
-# test comment
