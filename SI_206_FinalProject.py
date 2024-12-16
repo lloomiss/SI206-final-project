@@ -2,12 +2,9 @@ import json
 import re
 import requests
 from bs4 import BeautifulSoup
-import unittest
 import sqlite3
-import json
 import os
 import time
-import matplotlib
 
 ##create table for the genres (to prevent duplicate string)
 ##sort by ID (join on id)
@@ -77,65 +74,65 @@ def get_MAL_info(RT_data_list) -> list:
     info_list = []
     for anime in RT_data_list:
         RT_title = anime[0]
-        if RT_title == 'null':
-            continue
-        elif RT_title != 'null' and RT_title != '':
-            print(f"Processing {RT_title} from RT_data_list")
+        #if RT_title == 'null':
+            #continue
+        #elif RT_title != 'null' and RT_title != '':
+        print(f"Processing {RT_title} from RT_data_list")
 
-            # Getting the search results of our title from RT_data_list
-            url = f'https://api.jikan.moe/v4/anime?q={RT_title}'
-            response = requests.get(url)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if 'data' in data and len(data['data']) > 0:
-                    fullInfo = []
-                    titleMatch = False
-                    for entry in data['data']:
-                        time.sleep(2)
-                        MAL_titles = entry.get('titles')
-                        for MAL_title in MAL_titles:
-                            lowerMAL = MAL_title['title'].lower()
-                            if lowerMAL == RT_title:
-                                titleMatch = True
-                                break
-                        if titleMatch:
-                            MAL_ID = entry.get('mal_id')
-                            full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
-
-                            # Delay in requests
-                            time.sleep(2)
-
-                            response2 = requests.get(full_url)
-                            if response2.status_code == 200:
-                                data2 = response2.json()
-                                seasonScore = data2['data'].get('score', 'null')
-                                genres_list = data2['data'].get('genres', [])
-                                genre1 = genres_list[0].get('name', 'null') if genres_list else 'null'
-                                studio_list = data2['data'].get('studios', [])
-                                studio = studio_list[0].get('name', 'null') if studio_list else 'null'
-                                numEpisodes = data2['data'].get('episodes', 'null')
-                                releaseDate = data2['data']['aired'].get('string', 'null')
-                                numReviews = data2['data'].get('scored_by', 'null')
-
-                                fullInfo.append((RT_title, seasonScore, genre1, studio, numEpisodes, releaseDate, numReviews))
-                                info_list.append(fullInfo)
-                            else:
-                                print(f"Failed to retrieve full data for MAL ID: {MAL_ID}. Response code: {response2.status_code}")
+        # Getting the search results of our title from RT_data_list
+        url = f'https://api.jikan.moe/v4/anime?q={RT_title}'
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'data' in data and len(data['data']) > 0:
+                fullInfo = []
+                titleMatch = False
+                for entry in data['data']:
+                    time.sleep(2)
+                    MAL_titles = entry.get('titles')
+                    for MAL_title in MAL_titles:
+                        lowerMAL = MAL_title['title'].lower()
+                        if lowerMAL == RT_title:
+                            titleMatch = True
                             break
-                    if not titleMatch:
-                        seasonScore = 'null'
-                        genres = []
-                        studio = 'null'
-                        numEpisodes = 'null'
-                        releaseDate = 'null'
-                        numReviews = 'null'
-                        fullInfo.append((RT_title, seasonScore, genres, studio, numEpisodes, releaseDate, numReviews))
-                        info_list.append(fullInfo)
-            else:
-                print(f"No data found for title: {RT_title}")
+                    if titleMatch:
+                        MAL_ID = entry.get('mal_id')
+                        full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
+
+                        # Delay in requests
+                        time.sleep(2)
+
+                        response2 = requests.get(full_url)
+                        if response2.status_code == 200:
+                            data2 = response2.json()
+                            seasonScore = data2['data'].get('score', 'null')
+                            genres_list = data2['data'].get('genres', [])
+                            genre1 = genres_list[0].get('name', 'null') if genres_list else 'null'
+                            studio_list = data2['data'].get('studios', [])
+                            studio = studio_list[0].get('name', 'null') if studio_list else 'null'
+                            numEpisodes = data2['data'].get('episodes', 'null')
+                            releaseDate = data2['data']['aired'].get('string', 'null')
+                            numReviews = data2['data'].get('scored_by', 'null')
+
+                            fullInfo.append((RT_title, seasonScore, genre1, studio, numEpisodes, releaseDate, numReviews))
+                            info_list.append(fullInfo)
+                        else:
+                            print(f"Failed to retrieve full data for MAL ID: {MAL_ID}. Response code: {response2.status_code}")
+                        break
+                if not titleMatch:
+                    seasonScore = 'null'
+                    genres = []
+                    studio = 'null'
+                    numEpisodes = 'null'
+                    releaseDate = 'null'
+                    numReviews = 'null'
+                    fullInfo.append((RT_title, seasonScore, genres, studio, numEpisodes, releaseDate, numReviews))
+                    info_list.append(fullInfo)
         else:
-            print(f"Failed to retrieve data: {response.status_code}")
+            print(f"No data found for title: {RT_title}")
+    else:
+        print(f"Failed to retrieve data: {response.status_code}")
 
     print(info_list)
     return info_list
@@ -143,7 +140,7 @@ def get_MAL_info(RT_data_list) -> list:
 
 def set_up_database(db_name):
     path = os.path.dirname(os.path.abspath(__file__))
-    conn = sqlite3.connect(path + "/" + db_name)
+    conn = sqlite3.connect(os.path.join(path, db_name))
     cur = conn.cursor()
     return cur, conn
 
@@ -151,10 +148,10 @@ def set_up_database(db_name):
 def set_up_RT_table(data, cur, conn):
     meters_list = []
     for anime in data:
-        title = anime[0]
+        #title = anime[0]
         tomatometer = anime[1]
         popcornmeter = anime[2]
-        meters_list.append((title, tomatometer, popcornmeter))
+        meters_list.append((tomatometer, popcornmeter))
     
     cur.execute(
         '''
@@ -178,25 +175,8 @@ def set_up_RT_table(data, cur, conn):
     conn.commit()
     print("Inserted data into RT_meters")
 
+
 def set_up_genres_table(data, cur, conn):
-    """
-    Sets up the Types table in the database using the provided Pokemon data.
-
-    Parameters
-    -----------------------
-    data: list
-        List of Pokemon data in JSON format.
-
-    cur: Cursor
-        The database cursor object.
-
-    conn: Connection
-        The database connection object.
-
-    Returns
-    -----------------------
-    None
-    """
     genre_list = []
     for anime in data:
         genre1 = anime[2]
@@ -208,7 +188,7 @@ def set_up_genres_table(data, cur, conn):
     )
     for i in range(len(genre_list)):
         cur.execute(
-            "INSERT OR IGNORE INTO Types (id,genre) VALUES (?,?)", (i,
+            "INSERT OR IGNORE INTO Genres (id,genre) VALUES (?,?)", (i,
                                                                    genre_list[i])
         )
     conn.commit()
@@ -250,57 +230,15 @@ def set_up_MAL_table(data, cur, conn):
 
     print("Created table MAL")
 
-
-def chunk_data(data, chunk_size):
-    for i in range(0, len(data), chunk_size):
-        yield data[i:i + chunk_size]
-
-
-def insert_data(data, cur, conn):
-    chunk_size = 25
-    #instead of continue, consider break
-    for chunk in chunk_data(data, chunk_size):
-        for anime in chunk:
-            if len(anime) != 1:  # Ensure that the anime list has the correct structure
-                print(f"Unexpected structure in anime data: {anime}")
-                continue
-
-            anime_data = anime[0]
-            if len(anime_data) != 7:  # Ensure that the data has exactly 7 elements
-                print(f"Unexpected number of elements in anime data: {anime_data}")
-                continue
-
-            title, score, genres, studio, numEpisodes, releaseDate, numReviews = anime_data
-            genres = ', '.join(genres) if isinstance(genres, list) else genres
-            # how should we get correlating id number
-            genre_id = 
-
-            print(f"Inserting: ({title}, {score}, {genres}, {studio}, {numEpisodes}, {releaseDate}, {numReviews})")  # Debugging print statement
-
-            cur.execute(
-                '''
-                INSERT OR IGNORE INTO MAL (
-                    title, score, genre_id, studio, numEpi, releaseDate, numReviews
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                ''', (title, score, genres, studio, numEpisodes, releaseDate, numReviews)
-            )
-            conn.commit()
-            print("Data committed to the database")
-
-
-
-def create_combined_table(dbfile):
-    conn = sqlite3.connect(dbfile)
-    cur = conn.cursor()
-    
-    # Create the combined table
+def set_up_combined_table(data, cur, conn):
+    # Create the combined table if it doesn't exist
+    ## i feel like this might raise issue
     create_table_query = '''
     CREATE TABLE IF NOT EXISTS combined_anime_data (
-        anime_id INTEGER PRIMARY KEY,
+        anime_id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT,
         score REAL,
-        genre_id INTEGER,
+        genre TEXT,
         studio TEXT,
         numEpi INTEGER,
         releaseDate TEXT,
@@ -310,41 +248,93 @@ def create_combined_table(dbfile):
     );
     '''
     cur.execute(create_table_query)
-    conn.commit()  # Ensure table creation is committed
-    print("Created table combined_anime_data")
-
-    # Insert data into the combined table
-    insert_data_query = '''
-    INSERT INTO combined_anime_data (
-        title, score, genre_id, studio, 
-        numEpi, releaseDate, numReviews, 
-        tomatometer, popcornmeter
-    )
-    SELECT 
-        mal.title, mal.score, mal.genre_id, mal.studio, 
-        mal.numEpi, mal.releaseDate, mal.numReviews, 
-        rt.tomatometer, rt.popcornmeter
-    FROM MAL mal
-    LEFT JOIN RT_meters rt ON mal.id = rt.id
-    UNION
-    SELECT 
-        mal.title, mal.score, mal.genre_id, mal.studio, 
-        mal.numEpi, mal.releaseDate, mal.numReviews, 
+    
+    # Define the query to fetch combined data from both tables
+    query1 = '''
+    SELECT
+        mal.title, mal.score AS MALscore, mal.genre, mal.studio,
+        mal.numEpi, mal.releaseDate, mal.numReviews,
         rt.tomatometer, rt.popcornmeter
     FROM RT_meters rt
-    LEFT JOIN MAL mal ON rt.title = mal.title;
+    INNER JOIN MAL mal ON rt.anime_id = mal.anime_id
+    WHERE mal.anime_id = ?
     '''
-    cur.execute(insert_data_query)
+    
+    # We need another query to insert data into combined_anime_data
+    insert_query = '''
+    INSERT INTO combined_anime_data (
+        title, score, genre, studio, numEpi,
+        releaseDate, numReviews, tomatometer, popcornmeter
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    '''
+    
+    # Assuming data contains anime_id's; loop over them
+    for i in range(len(data)):
+        cur.execute(query1, (i,))
+        row = cur.fetchone()
+        if row:
+            cur.execute(insert_query, row)
     
     # Commit changes and close connection
     conn.commit()
-    print("Inserted data into combined_anime_data")
-    cur.close()
-    conn.close()
 
+# Function to get the number of rows processed so far
+def get_rows_processed(cursor):
+    cursor.execute("SELECT rows_processed FROM progress_tracker WHERE id = 1")
+    result = cursor.fetchone()
+    if result is None:
+        cursor.execute("INSERT INTO progress_tracker (id, rows_processed) VALUES (1, 0)")
+        return 0
+    return result[0]
+
+# Function to update the number of rows processed
+def update_rows_processed(cursor, rows_processed):
+    cursor.execute("UPDATE progress_tracker SET rows_processed = ? WHERE id = 1", (rows_processed,))
+
+# Function to create the progress tracking table
+def create_progress_tracker_table(cur, conn):
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS progress_tracker (
+        id INTEGER PRIMARY KEY,
+        rows_processed INTEGER
+    )""")
+    conn.commit()
+
+# Function to upload a batch of rows to the database
+def upload_batch(data, start, batch_size, cur, conn):
+    end = min(start + batch_size, len(data))
+    batch = data[start:end]
+    
+    # Process and insert data into MAL table
+    for anime in batch:
+        if len(anime) != 1:  # Ensure that the anime list has the correct structure
+            print(f"Unexpected structure in anime data: {anime}")
+            continue
+
+        anime_data = anime[0]
+        if len(anime_data) != 7:  # Ensure that the data has exactly 7 elements
+            print(f"Unexpected number of elements in anime data: {anime_data}")
+            continue
+
+        title, score, genres, studio, numEpisodes, releaseDate, numReviews = anime_data
+        genres = ', '.join(genres) if isinstance(genres, list) else genres
+        cur.execute("SELECT id FROM Genres WHERE genre = ?", (genres, ))
+        genre_id = cur.fetchone()
+
+        cur.execute(
+            '''
+            INSERT OR IGNORE INTO MAL (
+                title, score, genre_id, studio, numEpi, releaseDate, numReviews
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (title, score, genre_id, studio, numEpisodes, releaseDate, numReviews)
+        )
+    conn.commit()
+    return end - start
 
 def main():
-    # get soup
+    # Get the Rotten Tomatoes page
     url = 'https://www.rottentomatoes.com/browse/tv_series_browse/genres:anime~sort:popular?page=5'
     r = requests.get(url)
     
@@ -355,42 +345,34 @@ def main():
         print('Invalid URL')
         return
 
-    RT_info_1 = get_RT_info(tomato_soup, 0, 25)
-    RT_info_2 = get_RT_info(tomato_soup, 25, 50)
-    RT_info_3 = get_RT_info(tomato_soup, 50, 75)
-    RT_info_4 = get_RT_info(tomato_soup, 75, 100)
-    RT_info_5 = get_RT_info(tomato_soup, 100, 125)
-    RT_info_6 = get_RT_info(tomato_soup, 125, 144)
-
-    try:
-        anime_details_1 = get_MAL_info(RT_info_1)
-        anime_details_2 = get_MAL_info(RT_info_2)
-        anime_details_3 = get_MAL_info(RT_info_3)
-        anime_details_4 = get_MAL_info(RT_info_4)
-        anime_details_5 = get_MAL_info(RT_info_5)
-        anime_details_6 = get_MAL_info(RT_info_6)
-
-        cur, conn = set_up_database("anime.db")
-
-        set_up_RT_table(RT_info_1, cur, conn)
-        set_up_RT_table(RT_info_2, cur, conn)
-        set_up_RT_table(RT_info_3, cur, conn)
-        set_up_RT_table(RT_info_4, cur, conn)
-        set_up_RT_table(RT_info_5, cur, conn)
-        set_up_RT_table(RT_info_6, cur, conn)
-
-        create_MAL_table(cur, conn)
-        insert_data(anime_details_1, cur, conn)
-        insert_data(anime_details_2, cur, conn)
-        insert_data(anime_details_3, cur, conn)
-        insert_data(anime_details_4, cur, conn)
-        insert_data(anime_details_5, cur, conn)
-        insert_data(anime_details_6, cur, conn)
-
-        create_combined_table('anime.db')
-    except Exception as e:
-        print(e)
-
+    cur, conn = set_up_database("anime.db")
+    
+    # Ensure the progress_tracker table exists
+    create_progress_tracker_table(cur, conn)
+    
+    rows_processed = get_rows_processed(cur)
+    batch_size = 25
+    max_rows = 144  # Assuming 144 is the max number of items in the list
+    
+    stop = min(rows_processed + batch_size, max_rows)
+    
+    # Get new rows of RT info and corresponding MAL info
+    RT_info = get_RT_info(tomato_soup, rows_processed, stop)
+    new_data = get_MAL_info(RT_info)
+    
+    # Set up the RT table if not already done
+    if rows_processed == 0:
+        set_up_RT_table(RT_info, cur, conn)
+        set_up_genres_table(new_data, cur, conn)
+        set_up_MAL_table(new_data,cur,conn)
+        
+    # Upload the new batch of data
+    rows_uploaded = upload_batch(new_data, 0, batch_size, cur, conn)
+    
+    # Update the progress tracker
+    update_rows_processed(cur, rows_processed + rows_uploaded)
+    
+    print(f"Uploaded {rows_uploaded} rows to the database.")
 
 if __name__ == "__main__":
     main()

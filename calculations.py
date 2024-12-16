@@ -116,9 +116,11 @@ def top_5_results():
 
     fig, ax = plt.subplots(layout='constrained')
 
+    colors = {'Score': '#2e51a2', 'Tomatometer': '#fa320a', 'Popcornmeter': '#f9d320'}
+
     for attribute, measurement in scores.items():
         offset = width * multiplier
-        rects = ax.bar(x + offset, measurement, width, label=attribute)
+        rects = ax.bar(x + offset, measurement, width, label=attribute, color=colors[attribute])
         ax.bar_label(rects, padding=3)
         multiplier += 1
 
