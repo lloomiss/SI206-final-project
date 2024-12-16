@@ -7,6 +7,7 @@ import sqlite3
 import json
 import os
 import time
+import matplotlib
 
 
 def tomato_extract(tag):
@@ -64,57 +65,61 @@ def get_MAL_info(RT_data_list) -> list:
     info_list = []
     for anime in RT_data_list:
         RT_title = anime[0]
-        print(f"Processing {RT_title} from RT_data_list")
+        if RT_title == 'null':
+            continue
+        elif RT_title != 'null' and RT_title != '':
+            print(f"Processing {RT_title} from RT_data_list")
 
-        # Getting the search results of our title from RT_data_list
-        url = f'https://api.jikan.moe/v4/anime?q={RT_title}'
-        response = requests.get(url)
-        
-        if response.status_code == 200:
-            data = response.json()
-            if 'data' in data and len(data['data']) > 0:
-                fullInfo = []
-                titleMatch = False
-                for entry in data['data']:
-                    MAL_titles = entry.get('titles')
-                    for MAL_title in MAL_titles:
-                        lowerMAL = MAL_title['title'].lower()
-                        if lowerMAL == RT_title:
-                            titleMatch = True
-                            break
-                    if titleMatch:
-                        MAL_ID = entry.get('mal_id')
-                        full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
-
-                        # Delay in requests
+            # Getting the search results of our title from RT_data_list
+            url = f'https://api.jikan.moe/v4/anime?q={RT_title}'
+            response = requests.get(url)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if 'data' in data and len(data['data']) > 0:
+                    fullInfo = []
+                    titleMatch = False
+                    for entry in data['data']:
                         time.sleep(2)
+                        MAL_titles = entry.get('titles')
+                        for MAL_title in MAL_titles:
+                            lowerMAL = MAL_title['title'].lower()
+                            if lowerMAL == RT_title:
+                                titleMatch = True
+                                break
+                        if titleMatch:
+                            MAL_ID = entry.get('mal_id')
+                            full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
 
-                        response2 = requests.get(full_url)
-                        if response2.status_code == 200:
-                            data2 = response2.json()
-                            seasonScore = data2['data'].get('score', 'null')
-                            genres_list = data2['data'].get('genres', [])
-                            genre1 = genres_list[0].get('name', 'null') if genres_list else 'null'
-                            studio_list = data2['data'].get('studios', [])
-                            studio = studio_list[0].get('name', 'null') if studio_list else 'null'
-                            numEpisodes = data2['data'].get('episodes', 'null')
-                            releaseDate = data2['data']['aired'].get('string', 'null')
-                            numReviews = data2['data'].get('scored_by', 'null')
+                            # Delay in requests
+                            time.sleep(2)
 
-                            fullInfo.append((RT_title, seasonScore, genre1, studio, numEpisodes, releaseDate, numReviews))
-                            info_list.append(fullInfo)
-                        else:
-                            print(f"Failed to retrieve full data for MAL ID: {MAL_ID}. Response code: {response2.status_code}")
-                        break
-                if not titleMatch:
-                    seasonScore = 'null'
-                    genres = []
-                    studio = 'null'
-                    numEpisodes = 'null'
-                    releaseDate = 'null'
-                    numReviews = 'null'
-                    fullInfo.append((RT_title, seasonScore, genres, studio, numEpisodes, releaseDate, numReviews))
-                    info_list.append(fullInfo)
+                            response2 = requests.get(full_url)
+                            if response2.status_code == 200:
+                                data2 = response2.json()
+                                seasonScore = data2['data'].get('score', 'null')
+                                genres_list = data2['data'].get('genres', [])
+                                genre1 = genres_list[0].get('name', 'null') if genres_list else 'null'
+                                studio_list = data2['data'].get('studios', [])
+                                studio = studio_list[0].get('name', 'null') if studio_list else 'null'
+                                numEpisodes = data2['data'].get('episodes', 'null')
+                                releaseDate = data2['data']['aired'].get('string', 'null')
+                                numReviews = data2['data'].get('scored_by', 'null')
+
+                                fullInfo.append((RT_title, seasonScore, genre1, studio, numEpisodes, releaseDate, numReviews))
+                                info_list.append(fullInfo)
+                            else:
+                                print(f"Failed to retrieve full data for MAL ID: {MAL_ID}. Response code: {response2.status_code}")
+                            break
+                    if not titleMatch:
+                        seasonScore = 'null'
+                        genres = []
+                        studio = 'null'
+                        numEpisodes = 'null'
+                        releaseDate = 'null'
+                        numReviews = 'null'
+                        fullInfo.append((RT_title, seasonScore, genres, studio, numEpisodes, releaseDate, numReviews))
+                        info_list.append(fullInfo)
             else:
                 print(f"No data found for title: {RT_title}")
         else:
@@ -132,14 +137,16 @@ def set_up_database(db_name):
 def set_up_RT_table(data, cur, conn):
     meters_list = []
     for anime in data:
+        title = anime[0]
         tomatometer = anime[1]
         popcornmeter = anime[2]
-        meters_list.append((tomatometer, popcornmeter))
+        meters_list.append((title, tomatometer, popcornmeter))
     
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS RT_meters (
             anime_id INTEGER PRIMARY KEY,
+            title TEXT,
             tomatometer INTEGER,
             popcornmeter INTEGER
         )
@@ -148,9 +155,9 @@ def set_up_RT_table(data, cur, conn):
     for i in range(len(data)):
         cur.execute(
             '''
-            INSERT OR IGNORE INTO RT_meters (tomatometer, popcornmeter) VALUES (?, ?)
+            INSERT OR IGNORE INTO RT_meters (title, tomatometer, popcornmeter) VALUES (?, ?, ?)
             ''',
-            (meters_list[i][0], meters_list[i][1])
+            (meters_list[i][0], meters_list[i][1], meters_list[i][2])
         )
     
     conn.commit()
@@ -158,7 +165,7 @@ def set_up_RT_table(data, cur, conn):
 def create_MAL_table(cur, conn):
     cur.execute(
         '''
-        CREATE TABLE IF NOT EXISTS Anime (
+        CREATE TABLE IF NOT EXISTS MAL (
             anime_id INTEGER PRIMARY KEY,
             title TEXT,
             score TEXT,
@@ -198,7 +205,7 @@ def insert_data(data, cur, conn):
 
             cur.execute(
                 '''
-                INSERT OR IGNORE INTO Anime (
+                INSERT OR IGNORE INTO MAL (
                     title, score, genre, studio, numEpi, releaseDate, numReviews
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -210,7 +217,75 @@ def insert_data(data, cur, conn):
 
 
 
+def create_combined_table(dbfile):
+    conn = sqlite3.connect(dbfile)
+    cur = conn.cursor()
     
+    # Create the combined table
+    create_table_query = '''
+    CREATE TABLE IF NOT EXISTS combined_anime_data (
+        anime_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT,
+        score REAL,
+        genre TEXT,
+        studio TEXT,
+        numEpi INTEGER,
+        releaseDate TEXT,
+        numReviews INTEGER,
+        tomatometer REAL,
+        popcornmeter REAL
+    );
+    '''
+    cur.execute(create_table_query)
+
+    # Insert data into the combined table
+    insert_data_query = '''
+    INSERT INTO combined_anime_data (
+        title, score, genre, studio, 
+        numEpi, releaseDate, numReviews, 
+        tomatometer, popcornmeter
+    )
+    SELECT 
+        mal.title, mal.score, mal.genre, mal.studio, 
+        mal.numEpi, mal.releaseDate, mal.numReviews, 
+        rt.tomatometer, rt.popcornmeter
+    FROM MAL mal
+    LEFT JOIN RT_meters rt ON mal.title = rt.title
+    UNION
+    SELECT 
+        rt.title, mal.score, mal.genre, mal.studio, 
+        mal.numEpi, mal.releaseDate, mal.numReviews, 
+        rt.tomatometer, rt.popcornmeter
+    FROM RT_meters rt
+    LEFT JOIN MAL mal ON rt.title = mal.title;
+    '''
+    cur.execute(insert_data_query)
+    
+    # Commit changes and close connection
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+#calculation functions start here
+
+
+
+def finished_calc(cur):
+     
+    query = '''
+    SELECT *
+    FROM RT_meters AS rt
+    JOIN MAL AS mal ON rt.title = mal.title
+    WHERE rt.tomatometer IS NOT NULL AND mal.score IS NOT NULL;
+    '''
+
+    cur.execute(query)
+    
+    results = cur.fetchall()
+
+    return results
+
 
 def main():
     # get soup
@@ -255,6 +330,10 @@ def main():
         insert_data(anime_details_4, cur, conn)
         insert_data(anime_details_5, cur, conn)
         insert_data(anime_details_6, cur, conn)
+
+        create_combined_table('anime.db')
+
+
 
     except Exception as e:
         print(e)
