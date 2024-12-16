@@ -9,7 +9,11 @@ import os
 import time
 import matplotlib
 
-
+##create table for the genres (to prevent duplicate string)
+##sort by ID (join on id)
+##Getting rid of null values from csv (or instead, include an if statment to skip over the null if there is one)
+##Getting rid of title from RT_table, and combine data
+## 
 def tomato_extract(tag):
     # get the tags for anime titles, tomatometers, and popcornmeters
     title_tag = tag.find('span', {'data-qa': 'discovery-media-list-item-title'})
@@ -19,6 +23,7 @@ def tomato_extract(tag):
     # get the text or return a NULL value if no text
     title = title_tag.get_text(strip=True) if title_tag else "NULL"
     lower_title = title.lower()
+
     
     if tomatometer_tag:
         tomatometer_text = tomatometer_tag.get_text(strip=True)
@@ -38,7 +43,12 @@ def tomato_extract(tag):
     else:
         popcornmeter = "NULL"
     
-    return (lower_title, tomatometer, popcornmeter)
+    #makes sure no null titles are in the function
+    if lower_title == 'null' and popcornmeter == 'NULL' and tomatometer == 'NULL':
+        return None
+    
+    else: 
+         return (lower_title, tomatometer, popcornmeter)
 
 
 def get_RT_info(soup, start, stop) -> list:
@@ -150,7 +160,6 @@ def set_up_RT_table(data, cur, conn):
         '''
         CREATE TABLE IF NOT EXISTS RT_meters (
             anime_id INTEGER PRIMARY KEY,
-            title TEXT,
             tomatometer INTEGER,
             popcornmeter INTEGER
         )
@@ -162,30 +171,83 @@ def set_up_RT_table(data, cur, conn):
     for i in range(len(data)):
         cur.execute(
             '''
-            INSERT OR IGNORE INTO RT_meters (title, tomatometer, popcornmeter) VALUES (?, ?, ?)
+            INSERT OR IGNORE INTO RT_meters (tomatometer, popcornmeter) VALUES (?, ?)
             ''',
-            (meters_list[i][0], meters_list[i][1], meters_list[i][2])
+            (meters_list[i][1], meters_list[i][2])
         )
     conn.commit()
     print("Inserted data into RT_meters")
 
+def set_up_genres_table(data, cur, conn):
+    """
+    Sets up the Types table in the database using the provided Pokemon data.
 
-def create_MAL_table(cur, conn):
+    Parameters
+    -----------------------
+    data: list
+        List of Pokemon data in JSON format.
+
+    cur: Cursor
+        The database cursor object.
+
+    conn: Connection
+        The database connection object.
+
+    Returns
+    -----------------------
+    None
+    """
+    genre_list = []
+    for anime in data:
+        genre1 = anime[2]
+        if genre1 not in genre_list:
+            genre_list.append(genre1)
+       
     cur.execute(
+        "CREATE TABLE IF NOT EXISTS Genres (id INTEGER PRIMARY KEY, genre TEXT UNIQUE)"
+    )
+    for i in range(len(genre_list)):
+        cur.execute(
+            "INSERT OR IGNORE INTO Types (id,genre) VALUES (?,?)", (i,
+                                                                   genre_list[i])
+        )
+    conn.commit()
+
+def set_up_MAL_table(data, cur, conn):
+    cur.execute (
         '''
         CREATE TABLE IF NOT EXISTS MAL (
-            anime_id INTEGER PRIMARY KEY,
-            title TEXT,
-            score TEXT,
-            genre TEXT,
-            studio TEXT,
-            numEpi INTEGER,
-            releaseDate TEXT,
-            numReviews INTEGER
+        anime_id INTEGER PRIMARY KEY,
+        title TEXT,
+        score TEXT,
+        genre_id INTEGER,
+        studio TEXT,
+        numEpi INTEGER,
+        releaseDate TEXT,
+        numReviews INTEGER
         )
         '''
     )
-    conn.commit()
+    for anime in data:
+        title = anime[0]
+        MALscore = anime[1]
+        genre = anime[2]
+        studio = anime[3]
+        numEpisodes = anime[4]
+        releaseDate = anime[5]
+        numReviews = anime[6]
+        cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre, ))
+        genre_id = cur.fetchone()
+        cur.execute(
+            '''
+            INSERT OR IGNORE INTO MAL (
+            title, MALscore, genre_id, studio, numEpisodes, releaseDate, numReviews)
+            )
+            VALUES ( ?, ?, ?, ?, ?, ?, ?)
+            ''', (title, MALscore, genre_id, studio, numEpisodes, releaseDate, numReviews)
+        )
+        conn.commit()
+
     print("Created table MAL")
 
 
@@ -196,6 +258,7 @@ def chunk_data(data, chunk_size):
 
 def insert_data(data, cur, conn):
     chunk_size = 25
+    #instead of continue, consider break
     for chunk in chunk_data(data, chunk_size):
         for anime in chunk:
             if len(anime) != 1:  # Ensure that the anime list has the correct structure
@@ -209,13 +272,15 @@ def insert_data(data, cur, conn):
 
             title, score, genres, studio, numEpisodes, releaseDate, numReviews = anime_data
             genres = ', '.join(genres) if isinstance(genres, list) else genres
+            # how should we get correlating id number
+            genre_id = 
 
             print(f"Inserting: ({title}, {score}, {genres}, {studio}, {numEpisodes}, {releaseDate}, {numReviews})")  # Debugging print statement
 
             cur.execute(
                 '''
                 INSERT OR IGNORE INTO MAL (
-                    title, score, genre, studio, numEpi, releaseDate, numReviews
+                    title, score, genre_id, studio, numEpi, releaseDate, numReviews
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (title, score, genres, studio, numEpisodes, releaseDate, numReviews)
@@ -232,10 +297,10 @@ def create_combined_table(dbfile):
     # Create the combined table
     create_table_query = '''
     CREATE TABLE IF NOT EXISTS combined_anime_data (
-        anime_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        anime_id INTEGER PRIMARY KEY,
         title TEXT,
         score REAL,
-        genre TEXT,
+        genre_id INTEGER,
         studio TEXT,
         numEpi INTEGER,
         releaseDate TEXT,
@@ -251,19 +316,19 @@ def create_combined_table(dbfile):
     # Insert data into the combined table
     insert_data_query = '''
     INSERT INTO combined_anime_data (
-        title, score, genre, studio, 
+        title, score, genre_id, studio, 
         numEpi, releaseDate, numReviews, 
         tomatometer, popcornmeter
     )
     SELECT 
-        mal.title, mal.score, mal.genre, mal.studio, 
+        mal.title, mal.score, mal.genre_id, mal.studio, 
         mal.numEpi, mal.releaseDate, mal.numReviews, 
         rt.tomatometer, rt.popcornmeter
     FROM MAL mal
-    LEFT JOIN RT_meters rt ON mal.title = rt.title
+    LEFT JOIN RT_meters rt ON mal.id = rt.id
     UNION
     SELECT 
-        rt.title, mal.score, mal.genre, mal.studio, 
+        mal.title, mal.score, mal.genre_id, mal.studio, 
         mal.numEpi, mal.releaseDate, mal.numReviews, 
         rt.tomatometer, rt.popcornmeter
     FROM RT_meters rt
