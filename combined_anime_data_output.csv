@@ -1,0 +1,141 @@
+anime_id,title,score,genre,studio,numEpi,releaseDate,numReviews,tomatometer,popcornmeter
+1,aggretsuko,7.64,Comedy,Fanworks,10,"Apr 20, 2018",120490,9.6,8.2
+2,akame ga kill,null,,null,null,null,null,NULL,8.6
+3,akuma kun,null,,null,null,null,null,10.0,7.9
+4,attack on titan,8.55,Action,Wit Studio,25,"Apr 7, 2013 to Sep 29, 2013",2877335,9.6,9.5
+5,b: the beginning,7.15,Action,Production I.G,12,"Mar 2, 2018",179694,NULL,NULL
+6,baki,7.31,Sports,TMS Entertainment,26,"Jun 25, 2018 to Dec 17, 2018",249201,NULL,7.4
+7,baki hanma,7.65,Sports,TMS Entertainment,12,"Sep 30, 2021",105081,NULL,7.4
+8,bakugan: battle planet,5.53,Action,TMS Entertainment,50,"Apr 1, 2019 to Jan 19, 2020",3636,NULL,NULL
+9,banana fish,8.46,Action,MAPPA,24,"Jul 6, 2018 to Dec 21, 2018",387076,NULL,9.4
+10,"bastard!! -heavy metal, dark fantasy-",null,,null,null,null,null,6.7,8.9
+11,beastars,7.8,Drama,Orange,12,"Oct 10, 2019 to Dec 26, 2019",549734,NULL,8.2
+12,black clover,8.14,Action,Pierrot,170,"Oct 3, 2017 to Mar 30, 2021",895291,NULL,9.0
+13,black lagoon,8.03,Action,Madhouse,12,"Apr 9, 2006 to Jun 25, 2006",507971,NULL,8.9
+14,blade runner: black lotus,6.28,Sci-Fi,Sola Digital Arts,13,"Nov 14, 2021 to Feb 5, 2022",5129,7.1,6.4
+15,bleach,7.96,Action,Pierrot,366,"Oct 5, 2004 to Mar 27, 2012",1172772,NULL,7.9
+16,bleach: thousand-year blood war,9.01,Action,Pierrot,13,"Oct 11, 2022 to Dec 27, 2022",314325,NULL,9.0
+17,blue exorcist,7.48,Action,A-1 Pictures,25,"Apr 17, 2011 to Oct 2, 2011",1179160,NULL,NULL
+18,blue lock,8.22,Sports,8bit,24,"Oct 9, 2022 to Mar 26, 2023",405250,NULL,9.0
+19,bna: brand new animal,7.34,Action,Trigger,12,"Apr 9, 2020 to Jun 25, 2020",209799,10.0,8.6
+20,bocchi the rock!,8.76,Comedy,CloverWorks,12,"Oct 9, 2022 to Dec 25, 2022",389398,NULL,8.8
+21,boruto: naruto next generations,6.0,Action,Pierrot,293,"Apr 5, 2017 to Mar 26, 2023",452550,NULL,5.3
+22,chainsaw man,8.47,Action,MAPPA,12,"Oct 12, 2022 to Dec 28, 2022",928063,9.7,9.1
+23,claymore,7.73,Action,Madhouse,26,"Apr 4, 2007 to Sep 26, 2007",333195,NULL,9.0
+24,code geass,null,,null,null,null,null,NULL,9.4
+25,cowboy bebop,8.75,Action,Sunrise,26,"Apr 3, 1998 to Apr 24, 1999",995624,10.0,9.5
+26,dan da dan,null,,null,null,null,null,10.0,9.5
+27,death note,8.62,Supernatural,Madhouse,37,"Oct 4, 2006 to Jun 27, 2007",2822153,10.0,9.6
+28,delicious in dungeon,8.61,Adventure,Trigger,24,"Jan 4, 2024 to Jun 13, 2024",194941,10.0,9.6
+29,demon slayer: kimetsu no yaiba,8.45,Action,ufotable,26,"Apr 6, 2019 to Sep 28, 2019",2179455,NULL,8.8
+30,devilman crybaby,7.75,Action,Science SARU,10,"Jan 5, 2018",720660,8.9,8.4
+31,dinosaur king,6.43,Adventure,Sunrise,49,"Feb 4, 2007 to Jan 27, 2008",16987,NULL,7.9
+32,dorohedoro,8.05,Action,MAPPA,12,"Jan 13, 2020 to Mar 30, 2020",291155,10.0,9.5
+33,dr. stone,8.27,Adventure,TMS Entertainment,24,"Jul 5, 2019 to Dec 13, 2019",1092006,NULL,8.6
+34,dr. stone,8.27,Adventure,TMS Entertainment,24,"Jul 5, 2019 to Dec 13, 2019",1092006,NULL,9.5
+35,dragon ball daima,7.87,Action,Toei Animation,,"Oct 11, 2024 to ?",14032,10.0,NULL
+36,dragon ball super,7.46,Action,Toei Animation,131,"Jul 5, 2015 to Mar 25, 2018",552936,8.7,7.8
+37,dragon ball super,7.46,Action,Toei Animation,131,"Jul 5, 2015 to Mar 25, 2018",552936,NULL,9.1
+38,dragon ball z,8.19,Action,Toei Animation,291,"Apr 26, 1989 to Jan 31, 1996",865407,NULL,9.0
+39,eden,5.53,null,null,1,"Oct 15, 2011",1367,8.8,5.9
+40,edens zero,7.27,Action,J.C.Staff,25,"Apr 11, 2021 to Oct 3, 2021",99679,NULL,8.7
+41,erased,8.3,Mystery,A-1 Pictures,12,"Jan 8, 2016 to Mar 25, 2016",1400072,10.0,9.4
+42,ergo proxy,7.89,Mystery,Manglobe,23,"Feb 25, 2006 to Aug 12, 2006",245924,NULL,8.7
+43,fairy tail,7.57,Action,Satelight,175,"Oct 12, 2009 to Mar 30, 2013",1029456,NULL,7.1
+44,fire force,7.71,Action,David Production,24,"Jul 6, 2019 to Dec 28, 2019",754283,NULL,8.1
+45,frieren: beyond journey's end,9.32,Adventure,Madhouse,28,"Sep 29, 2023 to Mar 22, 2024",556280,10.0,9.5
+46,fullmetal alchemist brotherhood,9.1,Action,Bones,64,"Apr 5, 2009 to Jul 4, 2010",2177039,10.0,9.4
+47,gamera: rebirth,6.41,Sci-Fi,ENGI,6,"Sep 7, 2023",1549,NULL,7.2
+48,garouden: the way of the lone wolf,6.45,Action,NAZ,8,"May 23, 2024",4224,4.0,4.4
+49,ghost in the shell: sac_2045,6.61,Action,Production I.G,12,"Apr 23, 2020",11016,2.1,6.2
+50,ghost in the shell: stand alone complex,8.42,Action,Production I.G,26,"Oct 1, 2002 to Oct 1, 2003",167161,6.7,9.7
+51,goblin slayer,7.42,Action,White Fox,12,"Oct 7, 2018 to Dec 30, 2018",695981,NULL,7.9
+52,godzilla singular point,6.65,Action,Bones,13,"Apr 1, 2021 to Jun 24, 2021",30319,5.6,6.6
+53,good night world,7.03,Drama,NAZ,12,"Oct 12, 2023",23273,NULL,8.1
+54,gundam: requiem for vengeance,null,,null,null,null,null,NULL,4.8
+55,gurren lagann,8.63,Action,Gainax,27,"Apr 1, 2007 to Sep 30, 2007",921818,10.0,8.9
+56,haikyu!! to the top,8.37,Sports,Production I.G,13,"Jan 11, 2020 to Apr 4, 2020",603091,NULL,9.6
+57,hell's paradise,8.09,Action,MAPPA,13,"Apr 1, 2023 to Jul 1, 2023",409595,NULL,8.8
+58,hunter x hunter,8.42,Action,Nippon Animation,62,"Oct 16, 1999 to Mar 31, 2001",297164,NULL,9.1
+59,inuyashiki - last hero,null,,null,null,null,null,NULL,8.0
+60,jojo's bizarre adventure,7.87,Action,David Production,26,"Oct 6, 2012 to Apr 6, 2013",1111490,NULL,8.6
+61,jojo's bizarre adventure: stone ocean,8.1,Action,David Production,12,"Dec 1, 2021",303636,NULL,8.7
+62,jujutsu kaisen,8.57,Action,MAPPA,24,"Oct 3, 2020 to Mar 27, 2021",1778413,NULL,8.8
+63,junji ito maniac: japanese tales of the macabre,6.65,Drama,Studio Deen,12,"Jan 19, 2023",27725,7.5,5.7
+64,kaiju no. 8,8.3,Action,Production I.G,12,"Apr 13, 2024 to Jun 29, 2024",276250,NULL,8.9
+65,kengan ashura,7.45,Action,Larx Entertainment,12,"Jul 31, 2019",89068,NULL,8.4
+66,kimi ni todoke -from me to you,null,,null,null,null,null,NULL,NULL
+67,kotaro lives alone,8.17,Slice of Life,LIDENFILMS,10,"Mar 10, 2022",95123,10.0,9.6
+68,mashle: magic and muscles,7.62,Action,A-1 Pictures,12,"Apr 8, 2023 to Jul 1, 2023",353641,NULL,8.3
+69,mieruko-chan,7.39,Comedy,Passione,12,"Oct 3, 2021 to Dec 19, 2021",236866,NULL,NULL
+70,mob psycho 100,8.49,Action,Bones,12,"Jul 11, 2016 to Sep 27, 2016",1323718,NULL,8.8
+71,mobile suit gundam: the witch from mercury,7.86,Action,Sunrise,12,"Oct 2, 2022 to Jan 8, 2023",83234,NULL,5.0
+72,mushoku tensei: jobless reincarnation,8.36,Adventure,Studio Bind,11,"Jan 11, 2021 to Mar 22, 2021",871534,NULL,8.8
+73,my dress-up darling,8.16,Romance,CloverWorks,12,"Jan 9, 2022 to Mar 27, 2022",687723,NULL,7.6
+74,my happy marriage,7.73,Drama,Kinema Citrus,12,"Jul 5, 2023 to Sep 20, 2023",155964,NULL,8.8
+75,my hero academia,7.85,Action,Bones,13,"Apr 3, 2016 to Jun 26, 2016",2121011,NULL,8.6
+76,naruto,8.0,Action,Pierrot,220,"Oct 3, 2002 to Feb 8, 2007",2024925,NULL,8.2
+77,naruto: shippuden,null,,null,null,null,null,NULL,8.2
+78,neon genesis evangelion,8.35,Action,Gainax,26,"Oct 4, 1995 to Mar 27, 1996",1125591,10.0,8.9
+79,nier:automata ver1.1a,7.53,Action,A-1 Pictures,12,"Jan 8, 2023 to Jul 23, 2023",83085,NULL,9.3
+80,nina the starry bride,6.93,Romance,Signal.MD,12,"Oct 10, 2024 to Dec 23, 2024",4629,NULL,NULL
+81,ninja kamui,6.7,Action,E&H Production,13,"Feb 11, 2024 to May 5, 2024",64745,NULL,5.8
+82,null,null,,null,null,null,null,NULL,NULL
+83,one piece,7.09,Action,Toei Animation,1,"Mar 4, 2000",81488,NULL,9.2
+84,one piece,7.09,Action,Toei Animation,1,"Mar 4, 2000",81488,NULL,NULL
+85,one punch man,8.49,Action,Madhouse,12,"Oct 5, 2015 to Dec 21, 2015",2295434,10.0,9.0
+86,onimusha,6.56,Action,Sublimation,8,"Nov 2, 2023",5506,10.0,7.9
+87,onmyoji,6.95,Drama,Marvy Jack,13,"Nov 28, 2023",3565,NULL,7.5
+88,orb: on the movements of the earth,8.27,Drama,Madhouse,25,"Oct 5, 2024 to ?",13258,NULL,NULL
+89,oshi no ko: my star,null,,null,null,null,null,NULL,9.5
+90,overlord,7.91,Action,Madhouse,13,"Jul 7, 2015 to Sep 29, 2015",980358,NULL,8.3
+91,pantheon,null,,null,null,null,null,10.0,9.4
+92,parasyte: the maxim,8.33,Action,Madhouse,24,"Oct 9, 2014 to Mar 26, 2015",1189480,NULL,9.1
+93,pluto,8.46,Action,Studio M2,8,"Oct 26, 2023",82696,10.0,9.5
+94,pokémon concierge,7.69,Fantasy,dwarf,4,"Dec 28, 2023",7618,10.0,8.9
+95,pokémon horizons: the series,7.41,Action,OLM,,"Apr 14, 2023 to ?",7682,NULL,NULL
+96,pokémon the series,null,,null,null,null,null,NULL,7.5
+97,psycho-pass サイコパス,null,,null,null,null,null,NULL,7.9
+98,ranking of kings,8.5,Adventure,Wit Studio,23,"Oct 15, 2021 to Mar 25, 2022",360678,NULL,9.1
+99,ranma 1/2,7.77,Action,Studio Deen,161,"Apr 15, 1989 to Sep 25, 1992",125388,NULL,NULL
+100,record of ragnarok,6.8,Action,Graphinica,12,"Jun 17, 2021",191369,NULL,7.5
+101,resident evil: infinite darkness,6.26,Action,TMS Entertainment,4,"Jul 8, 2021",10064,5.0,4.1
+102,rick and morty: the anime,null,,null,null,null,null,5.0,1.6
+103,rising impact,7.53,Sports,Lay-duce,12,"Jun 22, 2024",6773,NULL,9.7
+104,romantic killer,7.96,Comedy,domerica,12,"Oct 27, 2022",130366,NULL,9.6
+105,scavengers reign,null,,null,null,null,null,10.0,9.6
+106,solo leveling,8.27,Action,A-1 Pictures,12,"Jan 7, 2024 to Mar 31, 2024",452917,10.0,8.4
+107,spriggan,6.68,Adventure,Studio 4°C,1,"Sep 5, 1998",14853,8.3,6.7
+108,spy x family,8.49,Action,Wit Studio,12,"Apr 9, 2022 to Jun 25, 2022",1025218,10.0,8.8
+109,suicide squad isekai,6.48,Action,Wit Studio,10,"Jul 6, 2024 to Sep 7, 2024",40665,NULL,6.3
+110,summer time rendering,8.47,Mystery,OLM,25,"Apr 15, 2022 to Sep 30, 2022",243700,NULL,10.0
+111,super crooks,7.21,Action,Bones,13,"Nov 25, 2021",40137,10.0,7.4
+112,sword art online: alicization,7.57,Action,A-1 Pictures,24,"Oct 7, 2018 to Mar 31, 2019",639753,NULL,7.4
+113,tekken: bloodline,6.43,Action,Studio Hibari,6,"Aug 18, 2022",19724,4.0,7.6
+114,terror in resonance,8.08,Mystery,MAPPA,11,"Jul 11, 2014 to Sep 26, 2014",635053,NULL,8.0
+115,that time i got reincarnated as a slime,8.14,Action,8bit,24,"Oct 2, 2018 to Mar 19, 2019",920289,NULL,7.7
+116,the circle,null,,null,null,null,null,NULL,6.2
+117,the daily life of the immortal king,7.32,Adventure,Haoliners Animation League,15,"Jan 18, 2020 to Mar 28, 2020",163808,NULL,NULL
+118,the disastrous life of saiki k.: reawakened,8.11,Comedy,J.C.Staff,6,"Dec 30, 2019",142355,NULL,7.9
+119,the dreaming boy is a realist,6.62,Comedy,Studio Gokumi,12,"Jul 4, 2023 to Sep 19, 2023",83158,NULL,NULL
+120,the grimm variations,null,,null,null,null,null,10.0,3.3
+121,the rising of the shield hero,7.94,Action,Kinema Citrus,25,"Jan 9, 2019 to Jun 26, 2019",1023712,NULL,7.8
+122,the seven deadly sins,7.62,Action,A-1 Pictures,24,"Oct 5, 2014 to Mar 29, 2015",1371547,NULL,7.7
+123,tokyo override,null,,null,null,null,null,NULL,NULL
+124,tokyo revengers,7.88,Action,LIDENFILMS,24,"Apr 11, 2021 to Sep 19, 2021",722214,NULL,8.8
+125,tower of god,7.56,Action,Telecom Animation Film,13,"Apr 2, 2020 to Jun 25, 2020",576672,NULL,NULL
+126,trigun stampede,7.83,Action,Orange,12,"Jan 7, 2023 to Mar 25, 2023",76068,10.0,7.5
+127,ultraman,6.69,Action,Production I.G,13,"Apr 1, 2019",14484,NULL,7.7
+128,uncle from another world,7.78,Comedy,Atelier Pontdarc,13,"Jul 6, 2022 to Mar 8, 2023",173282,NULL,9.6
+129,uzumaki,5.89,Avant Garde,Akatsuki,4,"Sep 28, 2024 to Oct 19, 2024",52156,8.0,7.0
+130,vinland saga,8.76,Action,Wit Studio,24,"Jul 8, 2019 to Dec 30, 2019",931467,10.0,7.9
+131,world trigger,7.58,Action,Toei Animation,73,"Oct 5, 2014 to Apr 3, 2016",151747,NULL,NULL
+132,yasuke,5.75,Action,MAPPA,6,"Apr 29, 2021",47604,9.3,5.1
+133,yu-gi-oh! duel monsters,7.49,Action,Gallop,224,"Apr 18, 2000 to Sep 29, 2004",258044,NULL,8.4
+134,zom 100: bucket list of the dead,7.76,Action,BUG FILMS,12,"Jul 9, 2023 to Dec 26, 2023",274392,10.0,9.2
+135,ōoku: the inner chambers,7.42,Drama,Studio Deen,10,"Jun 29, 2023",12239,NULL,8.1
+136,古見さんは、コミュ症です。,7.84,Comedy,OLM,12,"Oct 7, 2021 to Dec 23, 2021",493032,NULL,9.1
+137,東京喰種トーキョーグール √a,null,,null,null,null,null,NULL,7.0
+138,無限の住人 -immortal-,null,,null,null,null,null,NULL,10.0
+139,約束のネバーランド,8.49,Mystery,CloverWorks,12,"Jan 11, 2019 to Mar 29, 2019",1323563,10.0,6.7
+140,賭ケグルイ,7.23,Drama,MAPPA,12,"Jul 1, 2017 to Sep 23, 2017",943810,NULL,7.3
