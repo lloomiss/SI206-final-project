@@ -1,7 +1,5 @@
 import json
 import re
-import requests
-from bs4 import BeautifulSoup
 import unittest
 import sqlite3
 import json
@@ -37,15 +35,32 @@ def combined_select_n_CSV(conn, cur):
     print(f"Data has been written to {csv_file}")
 
 
-def avg_rating_by_genre():
+def avg_rating_by_genre(csv_file):
     genres = ("Action", "Adventure", "Comedy", "Drama", "Fantasy", "Romance", "Sci-Fi", "Slice of Life", "Supernatural")
+    
+    genre_data = {genre: {'MAL_total': 0, 'RT_total': 0, 'count': 0} for genre in genres}
+    
+    with open(csv_file, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        header = next(reader)  # Skip the header
+        
+        for row in reader:
+            genre = row[3]
+            if genre in genre_data:
+                genre_data[genre]['MAL_total'] += float(row[2])  # Assuming column 2 is MAL score
+                genre_data[genre]['RT_total'] += float(row[9])   # Assuming column 9 is RT popcornmeter
+                genre_data[genre]['count'] += 1
+    
+    avg_MAL_action = genre_data['Action']['MAL_total'] / genre_data['Action']['count'] if genre_data['Action']['count'] > 0 else 0
+    avg_RT_action = genre_data['Action']['RT_total'] / genre_data['Action']['count'] if genre_data['Action']['count'] > 0 else 0
+    
     score_means = {
-        'MAL score': (1, 2, 3, 4, 5, 6, 7, 8, 9),
-        'RT popcornmeter': (1, 2, 3, 4, 5, 6, 7, 8, 9),
+        'MAL score': (avg_MAL_action, 7.9733, 7.7625, 7.385, 7.69, 7.545, 6.345, 8.17, 8.62),
+        'RT popcornmeter': (avg_RT_action, 8.7125, 8.8667, 7.6714, 8.9, 7.6, 6.8, 9.6, 9.6),
     }
 
     x = np.arange(len(genres))  # the label locations
-    width = 0.1  # the width of the bars
+    width = 0.35  # the width of the bars
     multiplier = 0
 
     fig, ax = plt.subplots(layout='constrained')
@@ -59,9 +74,9 @@ def avg_rating_by_genre():
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Average Rating (out of 10)')
     ax.set_title('Average Rating by Platform and Genre')
-    ax.set_xticks(x + width, genres)
-    ax.legend(loc='upper left', ncols=3)
-    ax.set_ylim(0, 250)
+    ax.set_xticks(x + width / 2, genres)
+    ax.legend(loc='upper left', ncols=2)
+    ax.set_ylim(0, 10)  # Since scores are out of 10
 
     plt.show()
 
@@ -71,9 +86,9 @@ def main():
 
 
     try:
-        cur, conn =  set_up_database('anime.db')
-        combined_select_n_CSV(conn, cur)
-        avg_rating_by_genre()
+        #cur, conn =  set_up_database('anime.db')
+        #combined_select_n_CSV(conn, cur)
+        avg_rating_by_genre("combined_anime_data_output.csv")
         
 
     except Exception as e:
