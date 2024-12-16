@@ -35,11 +35,47 @@ def combined_select_n_CSV(conn, cur):
     print(f"Data has been written to {csv_file}")
 
 
-def avg_rating_by_genre():
-    genres = ("Adventure", "Comedy", "Drama", "Fantasy", "Romance", "Sci-Fi", "Slice of Life", "Supernatural")
+def avg_rating_by_genre(csv_file):
+    # genres with more than 1000 entries on myanimelist
+    genres = ("Action", "Adventure", "Comedy", "Drama", "Fantasy", "Romance", "Sci-Fi", "Slice of Life", "Supernatural")
+    
+    genre_data = {genre: {'MAL_total': 0, 'RT_total': 0, 'count': 0} for genre in genres}
+    
+    with open(csv_file, newline='', encoding='latin1') as csvfile:  # Use 'latin1' encoding here
+        reader = csv.reader(csvfile)
+        header = next(reader)  # Skip the header
+
+        for row in reader:
+            genre = row[3]
+            if genre in genre_data:
+                try:
+                    mal_score = float(row[2]) if row[2] else None
+                except ValueError:  # In case it cannot convert to float
+                    mal_score = None
+
+                try:
+                    rt_popcorn = float(row[9]) if row[9] else None
+                except ValueError:  # In case it cannot convert to float
+                    rt_popcorn = None
+
+                if mal_score is not None:
+                    genre_data[genre]['MAL_total'] += mal_score
+                if rt_popcorn is not None:
+                    genre_data[genre]['RT_total'] += rt_popcorn
+                genre_data[genre]['count'] += 1
+
+    # Calculate averages
+    for genre in genres:
+        if genre_data[genre]['count'] > 0:
+            genre_data[genre]['MAL_avg'] = genre_data[genre]['MAL_total'] / genre_data[genre]['count']
+            genre_data[genre]['RT_avg'] = genre_data[genre]['RT_total'] / genre_data[genre]['count']
+        else:
+            genre_data[genre]['MAL_avg'] = 0
+            genre_data[genre]['RT_avg'] = 0
+
     score_means = {
-        'MAL score': (7.9733, 7.7625, 7.385, 7.69, 7.545, 6.345, 8.17, 8.62),
-        'RT popcornmeter': (8.7125, 8.8667, 7.6714, 8.9, 7.6, 6.8, 9.6, 9.6),
+        'MyAnimeList Score': [genre_data[genre]['MAL_avg'] for genre in genres],
+        'Rotten Tomatoes Popcornmeter': [genre_data[genre]['RT_avg'] for genre in genres]
     }
 
     x = np.arange(len(genres))  # the label locations
@@ -48,9 +84,11 @@ def avg_rating_by_genre():
 
     fig, ax = plt.subplots(layout='constrained')
 
+    colors = {'MyAnimeList Score': '#2e51a2', 'Rotten Tomatoes Popcornmeter': '#fa320a'}
+
     for attribute, measurement in score_means.items():
         offset = width * multiplier
-        rects = ax.bar(x + offset, measurement, width, label=attribute)
+        rects = ax.bar(x + offset, measurement, width, label=attribute, color=colors[attribute])
         ax.bar_label(rects, padding=3)
         multiplier += 1
 
@@ -59,7 +97,7 @@ def avg_rating_by_genre():
     ax.set_title('Average Rating by Platform and Genre')
     ax.set_xticks(x + width / 2, genres)
     ax.legend(loc='upper left', ncols=2)
-    ax.set_ylim(0, 10)  # Since scores are out of 10
+    ax.set_ylim(0, 11)  # Since scores are out of 10
 
     plt.show()
 
@@ -101,8 +139,8 @@ def main():
     try:
         #cur, conn =  set_up_database('anime.db')
         #combined_select_n_CSV(conn, cur)
-        #avg_rating_by_genre()
-        top_5_results()
+        avg_rating_by_genre("combined_anime_data_output.csv")
+        #top_5_results()
 
         
 
