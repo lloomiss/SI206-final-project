@@ -36,27 +36,10 @@ def combined_select_n_CSV(conn, cur):
 
 
 def avg_rating_by_genre(csv_file):
-    genres = ("Action", "Adventure", "Comedy", "Drama", "Fantasy", "Romance", "Sci-Fi", "Slice of Life", "Supernatural")
-    
-    genre_data = {genre: {'MAL_total': 0, 'RT_total': 0, 'count': 0} for genre in genres}
-    
-    with open(csv_file, newline='', encoding='utf-8') as csvfile:
-        reader = csv.reader(csvfile)
-        header = next(reader)  # Skip the header
-        
-        for row in reader:
-            genre = row[3]
-            if genre in genre_data:
-                genre_data[genre]['MAL_total'] += float(row[2])  # Assuming column 2 is MAL score
-                genre_data[genre]['RT_total'] += float(row[9])   # Assuming column 9 is RT popcornmeter
-                genre_data[genre]['count'] += 1
-    
-    avg_MAL_action = genre_data['Action']['MAL_total'] / genre_data['Action']['count'] if genre_data['Action']['count'] > 0 else 0
-    avg_RT_action = genre_data['Action']['RT_total'] / genre_data['Action']['count'] if genre_data['Action']['count'] > 0 else 0
-    
+    genres = ("Adventure", "Comedy", "Drama", "Fantasy", "Romance", "Sci-Fi", "Slice of Life", "Supernatural")
     score_means = {
-        'MAL score': (avg_MAL_action, 7.9733, 7.7625, 7.385, 7.69, 7.545, 6.345, 8.17, 8.62),
-        'RT popcornmeter': (avg_RT_action, 8.7125, 8.8667, 7.6714, 8.9, 7.6, 6.8, 9.6, 9.6),
+        'MAL score': (7.9733, 7.7625, 7.385, 7.69, 7.545, 6.345, 8.17, 8.62),
+        'RT popcornmeter': (8.7125, 8.8667, 7.6714, 8.9, 7.6, 6.8, 9.6, 9.6),
     }
 
     x = np.arange(len(genres))  # the label locations
