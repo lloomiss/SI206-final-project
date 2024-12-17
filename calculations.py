@@ -33,21 +33,23 @@ def combined_select_n_CSV(conn, cur):
     conn.close()
 
     print(f"Data has been written to {csv_file}")
+    return csv_file
 
 
 def avg_rating_by_genre(csv_file):
     # genres with more than 1000 entries on myanimelist
-    genres = ("Action", "Adventure", "Comedy", "Drama", "Fantasy", "Romance", "Sci-Fi", "Slice of Life", "Supernatural")
+    genres = ("null", "Drama" "Action", "Avant Garde", "Adventure", "Sci-Fi",  "Fantasy",  "Comedy", "Sports", "Supernatural", "Mystery", "Romance", "Slice of Life")
+    genre_ids = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
     
-    genre_data = {genre: {'MAL_total': 0, 'RT_total': 0, 'count': 0} for genre in genres}
+    genre_data = {genre_id: {'MAL_total': 0, 'RT_total': 0, 'count': 0} for genre_id in genre_ids}
     
     with open(csv_file, newline='', encoding='latin1') as csvfile:  # Use 'latin1' encoding here
         reader = csv.reader(csvfile)
         header = next(reader)  # Skip the header
 
         for row in reader:
-            genre = row[3]
-            if genre in genre_data:
+            genre_id = int(row[3]) #"invalid int"
+            if genre_id in genre_data:
                 try:
                     mal_score = float(row[2]) if row[2] else None
                 except ValueError:  # In case it cannot convert to float
@@ -59,23 +61,23 @@ def avg_rating_by_genre(csv_file):
                     rt_popcorn = None
 
                 if mal_score is not None:
-                    genre_data[genre]['MAL_total'] += mal_score
+                    genre_data[genre_id]['MAL_total'] += mal_score
                 if rt_popcorn is not None:
-                    genre_data[genre]['RT_total'] += rt_popcorn
-                genre_data[genre]['count'] += 1
+                    genre_data[genre_id]['RT_total'] += rt_popcorn
+                genre_data[genre_id]['count'] += 1
 
     # Calculate averages
-    for genre in genres:
-        if genre_data[genre]['count'] > 0:
-            genre_data[genre]['MAL_avg'] = genre_data[genre]['MAL_total'] / genre_data[genre]['count']
-            genre_data[genre]['RT_avg'] = genre_data[genre]['RT_total'] / genre_data[genre]['count']
+    for genre_id in genre_ids:
+        if genre_data[genre_id]['count'] > 0:
+            genre_data[genre_id]['MAL_avg'] = genre_data[genre_id]['MAL_total'] / genre_data[genre_id]['count']
+            genre_data[genre_id]['RT_avg'] = genre_data[genre_id]['RT_total'] / genre_data[genre_id]['count']
         else:
-            genre_data[genre]['MAL_avg'] = 0
-            genre_data[genre]['RT_avg'] = 0
+            genre_data[genre_id]['MAL_avg'] = 0
+            genre_data[genre_id]['RT_avg'] = 0
 
     score_means = {
-        'MyAnimeList Score': [genre_data[genre]['MAL_avg'] for genre in genres],
-        'Rotten Tomatoes Popcornmeter': [genre_data[genre]['RT_avg'] for genre in genres]
+        'MyAnimeList Score': [genre_data[genre_id]['MAL_avg'] for genre_id in genre_ids],
+        'Rotten Tomatoes Popcornmeter': [genre_data[genre_id]['RT_avg'] for genre_id in genre_ids]
     }
 
     x = np.arange(len(genres))  # the label locations
@@ -134,22 +136,16 @@ def top_5_results():
     plt.show()
 
 
-
 def main():
-
-
     try:
-        #cur, conn =  set_up_database('anime.db')
-        #combined_select_n_CSV(conn, cur)
-        avg_rating_by_genre("combined_anime_data_output.csv")
-        #top_5_results()
-
-        
-
+        cur, conn = set_up_database('anime.db')
+        csv_file = combined_select_n_CSV(conn, cur)
+        avg_rating_by_genre(csv_file)
+        # top_5_results()
     except Exception as e:
         print(e)
 
+
 if __name__ == "__main__":
     main()
-
 
