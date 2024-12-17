@@ -16,15 +16,15 @@ def tomato_extract(tag):
         tomatometer_text = tomatometer_tag.get_text(strip=True)
         tomatometer = float(tomatometer_text[:-1]) / 10 if tomatometer_text.endswith('%') else "NULL"
     else:
-        tomatometer = "NULL"        
+        tomatometer = "NULL"
     if popcornmeter_tag:
         popcornmeter_text = popcornmeter_tag.get_text(strip=True)
         popcornmeter = float(popcornmeter_text[:-1]) / 10 if popcornmeter_text.endswith('%') else "NULL"
     else:
-        popcornmeter = "NULL"    
+        popcornmeter = "NULL"
     if lower_title == 'null' and popcornmeter == 'NULL' and tomatometer == 'NULL':
         return None
-    else: 
+    else:
         return (lower_title, tomatometer, popcornmeter)
 
 
@@ -47,11 +47,11 @@ def get_RT_info(soup, start, stop) -> list:
 def get_MAL_info(RT_data_list) -> list:
     info_list = []
     for anime in RT_data_list:
-        if anime is None:
-            continue        
+        if anime is None: #accounts for assigning of none value from the tomato extract function
+            continue
         if len(anime) < 1:
             print(f"Invalid length of anime tuple: {anime}")
-            continue        
+            continue
         RT_title = anime[0]
         print(f"Processing {RT_title} from RT_data_list")
         url = f'https://api.jikan.moe/v4/anime?q={RT_title}'
@@ -67,7 +67,7 @@ def get_MAL_info(RT_data_list) -> list:
                         lowerMAL = MAL_title['title'].lower()
                         if lowerMAL == RT_title:
                             titleMatch = True
-                            break
+                            break ## stops the loop -- transfering to the next statment
                     if titleMatch:
                         MAL_ID = entry.get('mal_id')
                         full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
@@ -101,7 +101,8 @@ def set_up_database(db_name):
     return cur, conn
 
 
-def set_up_RT_table(data, cur, conn):
+def create_tables(cur, conn):
+    # Creation handled without inserting data to avoid duplication during batch upload
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS RT_meters (
@@ -111,29 +112,6 @@ def set_up_RT_table(data, cur, conn):
         )
         '''
     )
-    conn.commit()
-    print("Created table RT_meters")
-    for row in data:
-        if row is None or len(row) != 3:
-            print(f"Skipping invalid row in RT data: {row}")
-            continue
-        tomatometer, popcornmeter = row[1:3]
-        cur.execute(
-            '''
-            INSERT OR IGNORE INTO RT_meters (tomatometer, popcornmeter) VALUES (?, ?)
-            ''', (tomatometer, popcornmeter)
-        )
-    conn.commit()
-    print("Inserted data into RT_meters")
-
-
-def set_up_genres_table(data, cur, conn):
-    genre_list = []
-    for anime in data:
-        if anime and len(anime) > 2:
-            genre1 = anime[2]
-            if genre1 not in genre_list:
-                genre_list.append(genre1)                
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS Genres (
@@ -141,12 +119,6 @@ def set_up_genres_table(data, cur, conn):
             genre TEXT UNIQUE
         )'''
     )
-    for genre in genre_list:
-        cur.execute("INSERT OR IGNORE INTO Genres (genre) VALUES (?)", (genre,))
-    conn.commit()
-    print("Created and populated Genres table")
-
-def set_up_MAL_table(data, cur, conn):
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS MAL (
@@ -162,33 +134,6 @@ def set_up_MAL_table(data, cur, conn):
         )
         '''
     )
-    conn.commit()
-
-    for anime in data:
-        if not anime or len(anime) != 7:
-            print(f"Skipping invalid anime data: {anime}")
-            continue
-        title, score, genre, studio, numEpisodes, releaseDate, numReviews = anime
-        cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre,))
-        genre_id = cur.fetchone()
-        if genre_id:
-            genre_id = genre_id[0]
-        else:
-            cur.execute("INSERT INTO Genres (genre) VALUES (?)", (genre,))
-            conn.commit()
-            cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre,))
-            genre_id = cur.fetchone()[0]
-        cur.execute(
-            '''
-            INSERT OR IGNORE INTO MAL (
-                title, score, genre_id, studio, numEpi, releaseDate, numReviews
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (title, score, genre_id, studio, numEpisodes, releaseDate, numReviews)
-        )
-    conn.commit()
-    print("Inserted data into MAL")
-
-def create_progress_tracker_table(cur, conn):
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS progress_tracker (
@@ -197,9 +142,9 @@ def create_progress_tracker_table(cur, conn):
         )
         '''
     )
-    conn.commit()
     cur.execute("INSERT OR IGNORE INTO progress_tracker (id, rows_processed) VALUES (1, 0)")
     conn.commit()
+
 
 def get_rows_processed(cur):
     cur.execute("SELECT rows_processed FROM progress_tracker WHERE id = 1")
@@ -208,35 +153,94 @@ def get_rows_processed(cur):
         return result[0]
     return 0
 
+
 def update_rows_processed(cur, conn, rows_processed):
     cur.execute("UPDATE progress_tracker SET rows_processed = ? WHERE id = 1", (rows_processed,))
     conn.commit()
 
-def upload_batch(data, start, batch_size, cur, conn):
-    end = min(start + batch_size, len(data))
-    batch = data[start:end]
-    for anime in batch:
+
+def upload_batch(RT_info, MAL_info, cur, conn):
+    if not RT_info or not MAL_info:
+        print("No data to upload.")
+        return 0
+
+    rows_uploaded = 0
+
+    # Upload RT data
+    for row in RT_info:
+        if row == None or len(row) != 3:
+            print(f"Skipping invalid row in RT data: {row}")
+            continue
+        tomatometer, popcornmeter = row[1:3]
+        cur.execute(
+            '''
+            INSERT OR IGNORE INTO RT_meters (tomatometer, popcornmeter) VALUES (?, ?)
+            ''', (tomatometer, popcornmeter)
+        )
+    # Upload MAL data
+    for anime in MAL_info:
         if not anime or len(anime) != 7:
             print(f"Skipping invalid anime data: {anime}")
             continue
         title, score, genre, studio, numEpisodes, releaseDate, numReviews = anime
-        genre_id = cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre,)).fetchone()
+        cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre,))
+        genre_id = cur.fetchone()
         if not genre_id:
             cur.execute("INSERT INTO Genres (genre) VALUES (?)", (genre,))
             conn.commit()
-            genre_id = cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre,)).fetchone()[0]
+            cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre,))
+            genre_id = cur.fetchone()[0]
         else:
             genre_id = genre_id[0]
+        
         cur.execute(
             '''
             INSERT OR IGNORE INTO MAL (
                 title, score, genre_id, studio, numEpi, releaseDate, numReviews
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (title, score, genre_id, studio, numEpisodes, releaseDate, numReviews)
         )
+        rows_uploaded += 1
+        print(rows_uploaded)
+
     conn.commit()
-    return end - start
+    return rows_uploaded
+
+def set_up_combined_tables(cur, conn):
+    cur.execute(
+        '''
+        CREATE TABLE IF NOT EXISTS combined_anime_data (
+            anime_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            score REAL,
+            genre_id INTEGER,
+            studio TEXT,
+            numEpi INTEGER,
+            releaseDate TEXT,
+            numReviews INTEGER,
+            tomatometer REAL,
+            popcornmeter REAL,
+            FOREIGN KEY (genre_id) REFERENCES Genres(id)
+        )
+        '''
+    )
+    
+    conn.commit()
+
+    cur.execute(
+        '''
+        INSERT OR IGNORE INTO combined_anime_data (
+            anime_id, score, genre_id, studio, numEpi, releaseDate, numReviews, tomatometer, popcornmeter
+        )
+        SELECT
+            MAL.anime_id, MAL.score, MAL.genre_id, MAL.studio, MAL.numEpi, MAL.releaseDate, MAL.numReviews, RT_meters.tomatometer, RT_meters.popcornmeter
+        FROM MAL
+        INNER JOIN RT_meters ON MAL.anime_id = RT_meters.anime_id
+        '''
+    )
+
+    conn.commit()
+
+
 
 def main():
     url = 'https://www.rottentomatoes.com/browse/tv_series_browse/genres:anime~sort:popular?page=5'
@@ -250,7 +254,7 @@ def main():
         return
 
     cur, conn = set_up_database("anime.db")
-    create_progress_tracker_table(cur, conn)
+    create_tables(cur, conn)
 
     rows_processed = get_rows_processed(cur)
     batch_size = 25
@@ -258,17 +262,14 @@ def main():
 
     stop = min(rows_processed + batch_size, max_rows)
     RT_info = get_RT_info(tomato_soup, rows_processed, stop)
-    new_data = get_MAL_info(RT_info)
+    MAL_info = get_MAL_info(RT_info)
 
-    if rows_processed == 0:
-        set_up_RT_table(RT_info, cur, conn)
-        set_up_genres_table(new_data, cur, conn)
-        set_up_MAL_table(new_data, cur, conn)
-
-    rows_uploaded = upload_batch(new_data, 0, batch_size, cur, conn)
+    rows_uploaded = upload_batch(RT_info, MAL_info, cur, conn)
     update_rows_processed(cur, conn, rows_processed + rows_uploaded)
 
     print(f"Uploaded {rows_uploaded} rows to the database.")
+
+    set_up_combined_tables(cur, conn)
 
 if __name__ == "__main__":
     main()
