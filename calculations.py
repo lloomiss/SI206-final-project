@@ -38,8 +38,10 @@ def combined_select_n_CSV(conn, cur):
 
 def avg_rating_by_genre(csv_file):
     # genres with more than 1000 entries on myanimelist
-    genres = ("null", "Drama" "Action", "Avant Garde", "Adventure", "Sci-Fi",  "Fantasy",  "Comedy", "Sports", "Supernatural", "Mystery", "Romance", "Slice of Life")
-    genre_ids = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+    genres = ("Drama", "Action", "Adventure", "Sci-Fi",  "Fantasy",  "Comedy", "Sports", "Supernatural", "Mystery", "Romance", "Slice of Life")
+    genre_ids = (2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+    
+    genre_mapping = dict(zip(genres, genre_ids))
     
     genre_data = {genre_id: {'MAL_total': 0, 'RT_total': 0, 'count': 0} for genre_id in genre_ids}
     
@@ -48,7 +50,8 @@ def avg_rating_by_genre(csv_file):
         header = next(reader)  # Skip the header
 
         for row in reader:
-            genre_id = int(row[3]) #"invalid int"
+            genre_name = row[3]  # Assuming genre name is in the 4th column
+            genre_id = genre_mapping.get(genre_name)
             if genre_id in genre_data:
                 try:
                     mal_score = float(row[2]) if row[2] else None
@@ -107,7 +110,7 @@ def avg_rating_by_genre(csv_file):
 def top_5_results():
     anime = ("Uzumaki", "Pluto", "Solo Leveling", "Delicious in Dungeon", "Frieren: Beyond Journey's End")
     scores = {
-        'MAL score': (5.89, 8.46, 8.27, 8.61, 9.32),
+        'Score': (5.89, 8.46, 8.27, 8.61, 9.32),
         'Tomatometer': (8, 10, 10, 10, 10),
         'Popcornmeter': (7, 9.5, 8.4, 9.6, 9.5)
     }
@@ -128,20 +131,111 @@ def top_5_results():
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Rating (out of 10)')
-    ax.set_title('Current Top 10 Anime Ratings')
+    ax.set_title('Current Top 5 Anime Ratings')
     ax.set_xticks(x + width / 2, anime)
     ax.legend(loc='upper left', ncols=2)
     ax.set_ylim(0, 11)  # Since scores are out of 10
 
     plt.show()
 
+def top_5_most_reviewed_anime(csv_file):
+    anime_data = []
+
+    # Step 1: Read the CSV file and extract the relevant information
+    try:
+        with open(csv_file, newline='', encoding='latin1') as csvfile:  # Try 'utf-8' if 'latin1' does not work
+            reader = csv.reader(csvfile)
+            header = next(reader)  # Skip the header
+            print(f"CSV Header: {header}")
+
+            for row in reader:
+                # Print each row for debugging
+                print(f"CSV Row: {row}")
+                
+                try:
+                    anime_id = row[0]
+                    score = float(row[1]) if row[1] else None
+                    genre_id = int(row[2]) if row[2] else None
+                    num_episodes = int(row[3]) if row[3] else None
+                    release_date = row[4]
+                    num_reviews = int(row[5]) if row[5] else 0
+                    tomatometer = float(row[6]) if row[6] else None
+                    popcornmeter = float(row[7]) if row[7] else None
+
+                    anime_data.append({
+                        'anime_id': anime_id,
+                        'score': score,
+                        'genre_id': genre_id,
+                        'num_episodes': num_episodes,
+                        'release_date': release_date,
+                        'num_reviews': num_reviews,
+                        'tomatometer': tomatometer,
+                        'popcornmeter': popcornmeter
+                    })
+                except ValueError as e:
+                    print(f"ValueError: {e} in row {row}")
+                    continue  # In case of conversion errors, skip the row
+
+        # Debug print to verify data is being read correctly
+        print(f"Total anime entries read: {len(anime_data)}")
+
+        if not anime_data:
+            print("No anime data available.")
+            return
+
+        # Step 2: Sort the anime data by num_reviews in descending order
+        anime_data_sorted = sorted(anime_data, key=lambda x: x['num_reviews'], reverse=True)
+
+        # Step 3: Select the top 5 most reviewed anime
+        top_5_anime = anime_data_sorted[:5]
+
+        # Debug print to verify top 5 data
+        for idx, anime in enumerate(top_5_anime):
+            print(f"{idx + 1}: {anime['anime_id']} with {anime['num_reviews']} reviews")
+
+        # Step 4: Create the bar graph with the extracted data
+        anime_titles = [anime['anime_id'] for anime in top_5_anime]
+        scores = {
+            'MAL score': [anime['score'] for anime in top_5_anime],
+            'Tomatometer': [anime['tomatometer'] for anime in top_5_anime],
+            'Popcornmeter': [anime['popcornmeter'] for anime in top_5_anime]
+        }
+
+        x = np.arange(len(anime_titles))  # the label locations
+        width = 0.15  # the width of the bars
+        multiplier = 0
+
+        fig, ax = plt.subplots(layout='constrained')
+
+        colors = {'MAL score': '#2e51a2', 'Tomatometer': '#fa320a', 'Popcornmeter': '#f9d320'}
+
+        for attribute, measurement in scores.items():
+            offset = width * multiplier
+            rects = ax.bar(x + offset, measurement, width, label=attribute, color=colors[attribute])
+            ax.bar_label(rects, padding=3)
+            multiplier += 1
+
+        # Add some text for labels, title and custom x-axis tick labels, etc.
+        ax.set_ylabel('Rating (out of 10)')
+        ax.set_title('Top 5 Most Reviewed Anime Ratings')
+        ax.set_xticks(x + width / 2, anime_titles)
+        ax.legend(loc='upper left', ncols=2)
+        ax.set_ylim(0, 11)  # Since scores are out of 10
+
+        plt.show()
+
+    except FileNotFoundError as e:
+        print(f"FileNotFoundError: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 def main():
     try:
-        cur, conn = set_up_database('anime.db')
-        csv_file = combined_select_n_CSV(conn, cur)
-        avg_rating_by_genre(csv_file)
-        # top_5_results()
+        #cur, conn = set_up_database('anime.db')
+        #csv_file = combined_select_n_CSV(conn, cur)
+        #avg_rating_by_genre('combined_anime_data_output.csv')
+        #top_5_results()
+        top_5_most_reviewed_anime('combined_anime_data_output.csv')
     except Exception as e:
         print(e)
 
