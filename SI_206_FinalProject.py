@@ -47,7 +47,7 @@ def get_RT_info(soup, start, stop) -> list:
 def get_MAL_info(RT_data_list) -> list:
     info_list = []
     for anime in RT_data_list:
-        if anime is None: #accounts for assigning of none value from the tomato extract function
+        if anime is None:
             continue
         if len(anime) < 1:
             print(f"Invalid length of anime tuple: {anime}")
@@ -67,7 +67,7 @@ def get_MAL_info(RT_data_list) -> list:
                         lowerMAL = MAL_title['title'].lower()
                         if lowerMAL == RT_title:
                             titleMatch = True
-                            break ## stops the loop -- transfering to the next statment
+                            break
                     if titleMatch:
                         MAL_ID = entry.get('mal_id')
                         full_url = f'https://api.jikan.moe/v4/anime/{MAL_ID}/full'
@@ -102,7 +102,6 @@ def set_up_database(db_name):
 
 
 def create_tables(cur, conn):
-    # Creation handled without inserting data to avoid duplication during batch upload
     cur.execute(
         '''
         CREATE TABLE IF NOT EXISTS RT_meters (
@@ -123,7 +122,7 @@ def create_tables(cur, conn):
         '''
         CREATE TABLE IF NOT EXISTS MAL (
             anime_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT,
+            title UNIQUE,
             score REAL,
             genre_id INTEGER,
             studio TEXT,
@@ -168,13 +167,14 @@ def upload_batch(RT_info, MAL_info, cur, conn):
 
     # Upload RT data
     for row in RT_info:
-        if row == None or len(row) != 3:
+        if row is None or len(row) != 3:
             print(f"Skipping invalid row in RT data: {row}")
             continue
         tomatometer, popcornmeter = row[1:3]
         cur.execute(
             '''
-            INSERT OR IGNORE INTO RT_meters (tomatometer, popcornmeter) VALUES (?, ?)
+            INSERT OR REPLACE INTO RT_meters (tomatometer, popcornmeter)
+            VALUES (?, ?)
             ''', (tomatometer, popcornmeter)
         )
     # Upload MAL data
@@ -195,13 +195,11 @@ def upload_batch(RT_info, MAL_info, cur, conn):
         
         cur.execute(
             '''
-            INSERT OR IGNORE INTO MAL (
-                title, score, genre_id, studio, numEpi, releaseDate, numReviews
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
-            ''', (title, score, genre_id, studio, numEpisodes, releaseDate, numReviews)
+            INSERT OR REPLACE INTO MAL (anime_id, title, score, genre_id, studio, numEpi, releaseDate, numReviews)
+            VALUES ((SELECT anime_id FROM MAL WHERE title = ?), ?, ?, ?, ?, ?, ?, ?) 
+            ''', (title, title, score, genre_id, studio, numEpisodes, releaseDate, numReviews)
         )
         rows_uploaded += 1
-        print(rows_uploaded)
 
     conn.commit()
     return rows_uploaded
@@ -228,7 +226,7 @@ def set_up_combined_tables(cur, conn):
 
     cur.execute(
         '''
-        INSERT OR IGNORE INTO combined_anime_data (
+        INSERT OR REPLACE INTO combined_anime_data (
             anime_id, score, genre_id, studio, numEpi, releaseDate, numReviews, tomatometer, popcornmeter
         )
         SELECT
@@ -258,7 +256,7 @@ def main():
 
     rows_processed = get_rows_processed(cur)
     batch_size = 25
-    max_rows = 144
+    max_rows = 140
 
     stop = min(rows_processed + batch_size, max_rows)
     RT_info = get_RT_info(tomato_soup, rows_processed, stop)
