@@ -78,17 +78,15 @@ def get_MAL_info(RT_data_list) -> list:
                             seasonScore = data2['data'].get('score', 'null')
                             genres_list = data2['data'].get('genres', [])
                             genre1 = genres_list[0].get('name', 'null') if genres_list else 'null'
-                            studio_list = data2['data'].get('studios', [])
-                            studio = studio_list[0].get('name', 'null') if studio_list else 'null'
                             numEpisodes = data2['data'].get('episodes', 'null')
                             releaseDate = data2['data']['aired'].get('string', 'null')
                             numReviews = data2['data'].get('scored_by', 'null')
-                            info_list.append((RT_title, seasonScore, genre1, studio, numEpisodes, releaseDate, numReviews))
+                            info_list.append((RT_title, seasonScore, genre1, numEpisodes, releaseDate, numReviews))
                         else:
                             print(f"Failed to retrieve full data for MAL ID: {MAL_ID}. Response code: {response2.status_code}")
                         break
                 if not titleMatch:
-                    info_list.append((RT_title, 'null', 'null', 'null', 'null', 'null', 'null'))
+                    info_list.append((RT_title, 'null', 'null', 'null', 'null', 'null'))
         else:
             print(f"No data found for title: {RT_title}")
     return info_list
@@ -125,7 +123,6 @@ def create_tables(cur, conn):
             title UNIQUE,
             score REAL,
             genre_id INTEGER,
-            studio TEXT,
             numEpi INTEGER,
             releaseDate TEXT,
             numReviews INTEGER,
@@ -179,10 +176,10 @@ def upload_batch(RT_info, MAL_info, cur, conn):
         )
     # Upload MAL data
     for anime in MAL_info:
-        if not anime or len(anime) != 7:
+        if not anime or len(anime) != 6:
             print(f"Skipping invalid anime data: {anime}")
             continue
-        title, score, genre, studio, numEpisodes, releaseDate, numReviews = anime
+        title, score, genre, numEpisodes, releaseDate, numReviews = anime
         cur.execute("SELECT id FROM Genres WHERE genre = ?", (genre,))
         genre_id = cur.fetchone()
         if not genre_id:
@@ -195,9 +192,9 @@ def upload_batch(RT_info, MAL_info, cur, conn):
         
         cur.execute(
             '''
-            INSERT OR REPLACE INTO MAL (anime_id, title, score, genre_id, studio, numEpi, releaseDate, numReviews)
-            VALUES ((SELECT anime_id FROM MAL WHERE title = ?), ?, ?, ?, ?, ?, ?, ?) 
-            ''', (title, title, score, genre_id, studio, numEpisodes, releaseDate, numReviews)
+            INSERT OR REPLACE INTO MAL (anime_id, title, score, genre_id, numEpi, releaseDate, numReviews)
+            VALUES ((SELECT anime_id FROM MAL WHERE title = ?), ?, ?, ?, ?, ?, ?) 
+            ''', (title, title, score, genre_id, numEpisodes, releaseDate, numReviews)
         )
         rows_uploaded += 1
 
@@ -211,7 +208,6 @@ def set_up_combined_tables(cur, conn):
             anime_id INTEGER PRIMARY KEY AUTOINCREMENT,
             score REAL,
             genre_id INTEGER,
-            studio TEXT,
             numEpi INTEGER,
             releaseDate TEXT,
             numReviews INTEGER,
@@ -227,10 +223,10 @@ def set_up_combined_tables(cur, conn):
     cur.execute(
         '''
         INSERT OR REPLACE INTO combined_anime_data (
-            anime_id, score, genre_id, studio, numEpi, releaseDate, numReviews, tomatometer, popcornmeter
+            anime_id, score, genre_id, numEpi, releaseDate, numReviews, tomatometer, popcornmeter
         )
         SELECT
-            MAL.anime_id, MAL.score, MAL.genre_id, MAL.studio, MAL.numEpi, MAL.releaseDate, MAL.numReviews, RT_meters.tomatometer, RT_meters.popcornmeter
+            MAL.anime_id, MAL.score, MAL.genre_id, MAL.numEpi, MAL.releaseDate, MAL.numReviews, RT_meters.tomatometer, RT_meters.popcornmeter
         FROM MAL
         INNER JOIN RT_meters ON MAL.anime_id = RT_meters.anime_id
         '''
